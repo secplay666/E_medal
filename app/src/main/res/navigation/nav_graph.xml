@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- 主页面 -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.t4.HomeFragment"
+        android:label="主页"
+        tools:layout="@layout/fragment_home">
+
+        <!-- 四个跳转动作 -->
+        <action
+            android:id="@+id/action_to_image_edit"
+            app:destination="@id/imageEditFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"/>
+
+        <action
+            android:id="@+id/action_to_ble_scan"
+            app:destination="@id/bleScanFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"/>
+
+        <action
+            android:id="@+id/action_to_ble_debug"
+            app:destination="@id/bleDebugFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"/>
+    </fragment>
+
+    <!-- 图像编辑页 -->
+    <fragment
+        android:id="@+id/imageEditFragment"
+        android:name="com.example.t4.ImageEditFragment"
+        android:label="图片编辑"
+        tools:layout="@layout/fragment_image_edit"/>
+
+    <!-- 蓝牙搜索页 -->
+    <fragment
+        android:id="@+id/bleScanFragment"
+        android:name="com.example.t4.BleScanFragment"
+        android:label="设备搜索"
+        tools:layout="@layout/fragment_ble_scan">
+
+        <!-- 跳转到调试页 -->
+        <action
+            android:id="@+id/action_to_ble_debug_from_scan"
+            app:destination="@id/bleDebugFragment"
+            app:enterAnim="@anim/slide_in_bottom"
+            app:exitAnim="@anim/slide_out_top"/>
+    </fragment>
+
+    <!-- 蓝牙调试页 -->
+    <fragment
+        android:id="@+id/bleDebugFragment"
+        android:name="com.example.t4.BleDebugFragment"
+        android:label="设备调试"
+        tools:layout="@layout/fragment_ble_debug"/>
+</navigation>

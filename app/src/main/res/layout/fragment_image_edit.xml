@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 图片预览 -->
+    <ImageView
+        android:id="@+id/imagePreview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/ImageView"
+        app:layout_constraintBottom_toTopOf="@id/toolPanel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- 保存按钮 -->
+    <ImageButton
+        android:id="@+id/btnSave"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_save"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/btn_save_desc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- 底部工具 -->
+    <LinearLayout
+        android:id="@+id/toolPanel"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:ignore="ExtraText">
+
+        <ImageButton
+            android:id="@+id/btnCrop"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:contentDescription="@string/btn_crop_desc"
+            android:src="@drawable/ic_crop"/>
+
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:contentDescription="@string/btn_filter_desc"
+            android:src="@drawable/ic_filter"/>
+
+        <ImageButton
+            android:id="@+id/btnText"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:contentDescription="@string/btn_text_desc"
+            android:src="@drawable/ic_text"/>
+
+        <ImageButton
+            android:id="@+id/btnDownload"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:contentDescription="@string/btn_download_desc"
+            android:src="@drawable/ic_download"/>
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:contentDescription="@string/delete_button_desc"
+            android:src="@drawable/ic_delete"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

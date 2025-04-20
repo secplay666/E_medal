@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">T4</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="B1">To P2</string>
+    <string name="B2">To P3</string>
+    <string name="B3">To P1</string>
+    <string name="delete_button_desc">删除图片</string>
+    <string name="btn_crop_desc">裁剪图片</string>
+    <string name="btn_filter_desc">图片滤镜</string>
+    <string name="btn_text_desc">添加文本</string>
+    <string name="btn_download_desc">下载到下位机</string>
+    <string name="btn_save_desc">保存修改</string>
+    <string name="ImageView">编辑图片</string>
+
+    <string name="P1">
+        This is P1
+    </string>
+
+    <string name="P2">
+        This is P2
+    </string>
+
+    <string name="P3">
+        This is P3
+    </string>
+
+</resources>

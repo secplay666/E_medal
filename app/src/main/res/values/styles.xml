@@ -1,0 +1,36 @@
+<resources>
+    <style name="TextButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <!-- 基础应用主题 -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- 定制主题属性 -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!-- 弹窗菜单主题覆盖 -->
+    <style name="ThemeOverlay.AppCompat.Light" parent="Base.ThemeOverlay.AppCompat.Light">
+        <!-- 菜单背景色 -->
+        <item name="android:colorBackground">@android:color/white</item>
+        <!-- 菜单文字颜色 -->
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <!-- 适配深色模式的可选主题 -->
+    <style name="AppTheme.Dark" parent="Theme.AppCompat">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
+<!--    &lt;!&ndash; 兼容21+版本的扩展配置 &ndash;&gt;-->
+<!--    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">-->
+<!--        <item name="android:windowTranslucentStatus">true</item>-->
+<!--        &lt;!&ndash; 适配Material组件 &ndash;&gt;-->
+<!--        <item name="materialButtonStyle">@style/Widget.AppCompat.Button</item>-->
+<!--    </style>-->
+</resources>
