@@ -9,36 +9,119 @@ import androidx.navigation.fragment.findNavController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class BleScanFragment : Fragment() {
+    private lateinit var binding: FragmentBleScanBinding
+    private lateinit var bluetoothAdapter: BluetoothAdapter
+    private lateinit var deviceAdapter: BleDeviceAdapter
+    private var isScanning = false
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // 关联布局文件 fragment_ble_scan.xml
-        return inflater.inflate(R.layout.fragment_ble_scan, container, false)
+    // BLE扫描回调[6](@ref)
+    private val scanCallback = object : BluetoothAdapter.LeScanCallback {
+        override fun onLeScan(device: BluetoothDevice, rssi: Int, scanRecord: ByteArray) {
+            activity?.runOnUiThread {
+                val bleDevice = BleDevice(device.name, device.address, rssi, scanRecord)
+                currentDevices.add(bleDevice)
+                deviceAdapter.updateList(currentDevices)
+            }
+        }
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentBleScanBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initBluetooth()
+        setupRecyclerView()
+        setupSwipeRefresh()
+    }
 
-        // 返回主页
-//        view.findViewById<View>(R.id.btn_back).setOnClickListener {
-//            findNavController().popBackStack(R.id.homeFragment, false)
-//        }
+    private fun initBluetooth() {
+        val bluetoothManager = requireContext().getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothAdapter = bluetoothManager.adapter
+        checkPermissions()
+    }
 
-        // 添加下拉刷新监听
-        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.refreshLayout)
-        swipeRefreshLayout.setOnRefreshListener {
-            // 触发扫描逻辑（原按钮点击的代码）
-            startScan()
+    private fun setupRecyclerView() {
+        deviceAdapter = BleDeviceAdapter { device ->
+            // 点击设备后的连接逻辑（需自行实现）
+            connectToDevice(device)
+        }
+        binding.rvDevices.adapter = deviceAdapter
+    }
 
-            // 扫描完成后停止刷新动画（需在扫描回调中调用）
-            swipeRefreshLayout.isRefreshing = false
+    private fun setupSwipeRefresh() {
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            if (!isScanning) startBleScan()
+            else binding.swipeRefreshLayout.isRefreshing = false
         }
     }
-}
 
-private fun startScan() {
-    // 你的扫描逻辑（如蓝牙扫描、网络请求等）
+    private fun startBleScan() {
+        if (!checkBluetoothEnabled()) return
+
+        currentDevices.clear()
+        isScanning = true
+        binding.swipeRefreshLayout.isRefreshing = true
+
+        // 扫描10秒后自动停止[6](@ref)
+        Handler(Looper.getMainLooper()).postDelayed({
+            stopBleScan()
+        }, 10000)
+
+        bluetoothAdapter.startLeScan(scanCallback)
+    }
+
+    private fun stopBleScan() {
+        bluetoothAdapter.stopLeScan(scanCallback)
+        isScanning = false
+        binding.swipeRefreshLayout.isRefreshing = false
+    }
+
+    private fun checkBluetoothEnabled(): Boolean {
+        return if (!bluetoothAdapter.isEnabled) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+            false
+        } else true
+    }
+
+    private fun checkPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED -> return
+                shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                    showPermissionRationaleDialog()
+                }
+                else -> {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        REQUEST_PERMISSION_LOCATION
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            REQUEST_PERMISSION_LOCATION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startBleScan()
+                } else {
+                    Toast.makeText(context, "需要位置权限才能扫描蓝牙设备", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val REQUEST_ENABLE_BT = 1001
+        private const val REQUEST_PERMISSION_LOCATION = 1002
+        private val currentDevices = mutableListOf<BleDevice>()
+    }
 }
