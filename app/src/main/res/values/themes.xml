@@ -2,8 +2,35 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.T4" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- 次要颜色 -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- 状态栏颜色 -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- 确保文本外观属性存在 -->
+        <item name="textAppearanceButton">@style/TextAppearance.MaterialComponents.Button</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="Theme.T4" parent="Base.Theme.T4" />
+
+    <!-- ActionBar样式 -->
+    <style name="Theme.T4.AppBarOverlay" parent="ThemeOverlay.Material3.Dark.ActionBar" />
+
+    <!-- 弹出菜单样式 -->
+    <style name="Theme.T4.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
+
+    <!-- 弹窗菜单主题覆盖 -->
+    <style name="ThemeOverlay.AppCompat.Light" parent="Base.ThemeOverlay.AppCompat.Light">
+        <!-- 菜单背景色 -->
+        <item name="android:colorBackground">@android:color/white</item>
+        <!-- 菜单文字颜色 -->
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
 </resources>

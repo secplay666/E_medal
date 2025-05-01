@@ -1,26 +1,109 @@
 package com.example.t4
 
+import android.Manifest
+import android.app.AlertDialog
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.content.Context.BLUETOOTH_SERVICE
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.t4.ble.BleDevice
+import com.example.t4.ble.BleDeviceAdapter
+import com.example.t4.databinding.FragmentBleScanBinding
 
 class BleScanFragment : Fragment() {
     private lateinit var binding: FragmentBleScanBinding
     private lateinit var bluetoothAdapter: BluetoothAdapter
+    private lateinit var bluetoothLeScanner: BluetoothLeScanner
     private lateinit var deviceAdapter: BleDeviceAdapter
     private var isScanning = false
 
-    // BLE扫描回调[6](@ref)
-    private val scanCallback = object : BluetoothAdapter.LeScanCallback {
-        override fun onLeScan(device: BluetoothDevice, rssi: Int, scanRecord: ByteArray) {
+    // 替换旧的 startActivityForResult
+    private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
+    
+    // 替换旧的 requestPermissions
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    
+    // 添加多权限请求
+    private lateinit var requestMultiplePermissionsLauncher: ActivityResultLauncher<Array<String>>
+    // 替换旧的 LeScanCallback 为新的 ScanCallback
+    // BLE扫描回调
+    private val scanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            val device = result.device
+            val rssi = result.rssi
+            val scanRecord = result.scanRecord?.bytes ?: ByteArray(0)
+            
             activity?.runOnUiThread {
-                val bleDevice = BleDevice(device.name, device.address, rssi, scanRecord)
-                currentDevices.add(bleDevice)
-                deviceAdapter.updateList(currentDevices)
+                // 添加权限检查
+                if (hasBluetoothPermissions()) {
+                    try {
+                        val deviceName = device.name // 这里需要 BLUETOOTH_CONNECT 权限
+                        val bleDevice = BleDevice(deviceName, device.address, rssi, scanRecord)
+                        if (!currentDevices.contains(bleDevice)) {
+                            currentDevices.add(bleDevice)
+                            deviceAdapter.updateList(currentDevices)
+                        }
+                    } catch (e: SecurityException) {
+                        Toast.makeText(context, "缺少蓝牙连接权限", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // 初始化 ActivityResultLauncher
+        enableBluetoothLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == -1) { // RESULT_OK
+                startBleScan()
+            } else {
+                Toast.makeText(context, "需要启用蓝牙才能扫描设备", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // 初始化权限请求
+        requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                startBleScan()
+            } else {
+                Toast.makeText(context, "需要位置权限才能扫描蓝牙设备", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        // 初始化多权限请求
+        requestMultiplePermissionsLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val allGranted = permissions.values.all { it }
+            if (allGranted) {
+                startBleScan()
+            } else {
+                Toast.makeText(context, "需要蓝牙权限才能扫描设备", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -40,21 +123,23 @@ class BleScanFragment : Fragment() {
     private fun initBluetooth() {
         val bluetoothManager = requireContext().getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
+        bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
         checkPermissions()
     }
 
     private fun setupRecyclerView() {
         deviceAdapter = BleDeviceAdapter { device ->
-            // 点击设备后的连接逻辑（需自行实现）
+            // 点击设备后的连接逻辑
             connectToDevice(device)
         }
-        binding.rvDevices.adapter = deviceAdapter
+        binding.deviceList.layoutManager = LinearLayoutManager(requireContext())
+        binding.deviceList.adapter = deviceAdapter
     }
 
     private fun setupSwipeRefresh() {
-        binding.swipeRefreshLayout.setOnRefreshListener {
+        binding.refreshLayout.setOnRefreshListener {
             if (!isScanning) startBleScan()
-            else binding.swipeRefreshLayout.isRefreshing = false
+            else binding.refreshLayout.isRefreshing = false
         }
     }
 
@@ -62,60 +147,105 @@ class BleScanFragment : Fragment() {
         if (!checkBluetoothEnabled()) return
 
         currentDevices.clear()
+        deviceAdapter.updateList(currentDevices)
         isScanning = true
-        binding.swipeRefreshLayout.isRefreshing = true
+        binding.refreshLayout.isRefreshing = true
+        binding.scanProgress.visibility = View.VISIBLE
 
-        // 扫描10秒后自动停止[6](@ref)
+        // 扫描10秒后自动停止
         Handler(Looper.getMainLooper()).postDelayed({
             stopBleScan()
         }, 10000)
 
-        bluetoothAdapter.startLeScan(scanCallback)
+        // 添加权限检查
+        if (hasBluetoothPermissions()) {
+            try {
+                // 使用新的扫描方法
+                bluetoothLeScanner.startScan(scanCallback)
+            } catch (e: SecurityException) {
+                Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()
+                binding.refreshLayout.isRefreshing = false
+                binding.scanProgress.visibility = View.GONE
+                isScanning = false
+            }
+        } else {
+            Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()
+            binding.refreshLayout.isRefreshing = false
+            binding.scanProgress.visibility = View.GONE
+            isScanning = false
+        }
     }
 
     private fun stopBleScan() {
-        bluetoothAdapter.stopLeScan(scanCallback)
+        // 添加权限检查
+        if (hasBluetoothPermissions()) {
+            try {
+                // 使用新的停止扫描方法
+                bluetoothLeScanner.stopScan(scanCallback)
+            } catch (e: SecurityException) {
+                Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()
+            }
+        }
         isScanning = false
-        binding.swipeRefreshLayout.isRefreshing = false
+        binding.refreshLayout.isRefreshing = false
+        binding.scanProgress.visibility = View.GONE
     }
 
     private fun checkBluetoothEnabled(): Boolean {
         return if (!bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+            // 使用新的启动活动方法
+            enableBluetoothLauncher.launch(enableBtIntent)
             false
         } else true
     }
 
     private fun checkPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12+ 需要 BLUETOOTH_SCAN 和 BLUETOOTH_CONNECT 权限
+            val requiredPermissions = arrayOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT
+            )
+            
+            val missingPermissions = requiredPermissions.filter {
+                ContextCompat.checkSelfPermission(requireContext(), it) != PackageManager.PERMISSION_GRANTED
+            }
+            
+            if (missingPermissions.isNotEmpty()) {
+                // 使用新的权限请求方法
+                requestMultiplePermissionsLauncher.launch(missingPermissions.toTypedArray())
+                return
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android 6.0-11 需要位置权限
             when {
                 ContextCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED -> return
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // 权限已授予，开始扫描
+                    startBleScan()
+                }
                 shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                     showPermissionRationaleDialog()
                 }
                 else -> {
-                    requestPermissions(
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        REQUEST_PERMISSION_LOCATION
-                    )
+                    // 使用新的权限请求方法
+                    requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }
             }
+            return
         }
+        
+        // 所有权限都已授予或低于 Android 6.0，开始扫描
+        startBleScan()
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            REQUEST_PERMISSION_LOCATION -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startBleScan()
-                } else {
-                    Toast.makeText(context, "需要位置权限才能扫描蓝牙设备", Toast.LENGTH_SHORT).show()
-                }
-            }
+    override fun onPause() {
+        super.onPause()
+        if (isScanning) {
+            stopBleScan()
         }
     }
 
@@ -123,5 +253,51 @@ class BleScanFragment : Fragment() {
         private const val REQUEST_ENABLE_BT = 1001
         private const val REQUEST_PERMISSION_LOCATION = 1002
         private val currentDevices = mutableListOf<BleDevice>()
+    }
+
+    private fun connectToDevice(device: BleDevice) {
+        // 停止扫描
+        if (isScanning) {
+            stopBleScan()
+        }
+        
+        // 保存设备信息到导航参数
+        val bundle = Bundle().apply {
+            putString("device_name", device.name)
+            putString("device_address", device.address)
+        }
+        findNavController().navigate(R.id.action_to_ble_debug_from_scan, bundle)
+    }
+
+    private fun showPermissionRationaleDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("需要位置权限")
+            .setMessage("蓝牙扫描需要位置权限才能正常工作")
+            .setPositiveButton("授权") { _, _ ->
+                // 使用新的权限请求方法
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+            .setNegativeButton("取消", null)
+            .create()
+            .show()
+    }
+
+    // 添加一个辅助方法来检查蓝牙权限
+    private fun hasBluetoothPermissions(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
     }
 }
