@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.t4.ble.BleDevice
 import com.example.t4.ble.BleDeviceAdapter
 import com.example.t4.databinding.FragmentBleScanBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class BleScanFragment : Fragment() {
     private lateinit var binding: FragmentBleScanBinding
@@ -115,9 +116,35 @@ class BleScanFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initBluetooth()
-        setupRecyclerView()
+        setupRecyclerView() // 确保先初始化 deviceAdapter
         setupSwipeRefresh()
+        initBluetooth()
+
+        // 设置底部导航栏选中状态和点击监听
+//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
+//        bottomNav.selectedItemId = R.id.navigation_ble
+//
+//        bottomNav.setOnItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.navigation_home -> {
+//                    findNavController().navigate(R.id.actionFromBleScanToHome)
+//                    true
+//                }
+//                R.id.navigation_ble -> {
+//                    // 已经在蓝牙扫描页面，不需要导航
+//                    true
+//                }
+//                R.id.navigation_image -> {
+//                    findNavController().navigate(R.id.actionFromBleScanToImageEdit)
+//                    true
+//                }
+//                R.id.navigation_debug -> {
+//                    findNavController().navigate(R.id.actionFromBleScanToBleDebug)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
     }
 
     private fun initBluetooth() {
@@ -143,7 +170,15 @@ class BleScanFragment : Fragment() {
         }
     }
 
+    // 添加一个 Handler 成员变量
+    private val handler = Handler(Looper.getMainLooper())
+    
     private fun startBleScan() {
+        if (!::deviceAdapter.isInitialized) {
+            // 如果 deviceAdapter 尚未初始化，先初始化它
+            setupRecyclerView()
+        }
+        
         if (!checkBluetoothEnabled()) return
 
         currentDevices.clear()
@@ -153,7 +188,7 @@ class BleScanFragment : Fragment() {
         binding.scanProgress.visibility = View.VISIBLE
 
         // 扫描10秒后自动停止
-        Handler(Looper.getMainLooper()).postDelayed({
+        handler.postDelayed({
             stopBleScan()
         }, 10000)
 
@@ -177,6 +212,9 @@ class BleScanFragment : Fragment() {
     }
 
     private fun stopBleScan() {
+        // 检查 Fragment 是否仍然附加到 Activity
+        if (!isAdded) return
+        
         // 添加权限检查
         if (hasBluetoothPermissions()) {
             try {
@@ -225,7 +263,9 @@ class BleScanFragment : Fragment() {
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     // 权限已授予，开始扫描
-                    startBleScan()
+                    if (::deviceAdapter.isInitialized) { // 添加检查
+                        startBleScan()
+                    }
                 }
                 shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                     showPermissionRationaleDialog()
@@ -239,7 +279,9 @@ class BleScanFragment : Fragment() {
         }
         
         // 所有权限都已授予或低于 Android 6.0，开始扫描
-        startBleScan()
+        if (::deviceAdapter.isInitialized) { // 添加检查
+            startBleScan()
+        }
     }
 
     override fun onPause() {
@@ -266,7 +308,7 @@ class BleScanFragment : Fragment() {
             putString("device_name", device.name)
             putString("device_address", device.address)
         }
-        findNavController().navigate(R.id.action_to_ble_debug_from_scan, bundle)
+        findNavController().navigate(R.id.actionFromBleScanToBleDebug, bundle)
     }
 
     private fun showPermissionRationaleDialog() {
@@ -284,6 +326,9 @@ class BleScanFragment : Fragment() {
 
     // 添加一个辅助方法来检查蓝牙权限
     private fun hasBluetoothPermissions(): Boolean {
+        // 检查 Fragment 是否仍然附加到 Activity
+        if (!isAdded) return false
+        
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             ContextCompat.checkSelfPermission(
                 requireContext(),
@@ -300,4 +345,10 @@ class BleScanFragment : Fragment() {
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // 移除所有挂起的回调
+        handler.removeCallbacksAndMessages(null)
+    }
 }
+

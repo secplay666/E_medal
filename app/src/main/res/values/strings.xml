@@ -19,5 +19,4 @@
     <string name="P1">This is P1</string>
     <string name="P2">This is P2</string>
     <string name="P3">This is P3</string>
-    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
 </resources>

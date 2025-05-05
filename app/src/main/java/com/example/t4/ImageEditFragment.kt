@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ImageEditFragment : Fragment() {
 
@@ -31,7 +32,29 @@ class ImageEditFragment : Fragment() {
             val bundle = Bundle().apply {
                 putString("image_path", "/sdcard/edited_image.jpg")
             }
-//            findNavController().navigate(R.id.action_image_edit_to_home, bundle)
         }
+
+        // 设置底部导航栏选中状态和点击监听
+//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
+//        bottomNav.selectedItemId = R.id.navigation_image
+//
+//        bottomNav.setOnItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.navigation_home -> {
+//                    findNavController().navigate(R.id.actionFromImageEditToHome)
+//                    true
+//                }
+//                R.id.navigation_ble -> {
+//                    findNavController().navigate(R.id.actionFromImageEditToBleScan)
+//                    true
+//                }
+//                R.id.navigation_image -> true
+//                R.id.navigation_debug -> {
+//                    findNavController().navigate(R.id.actionFromImageEditToBleDebug)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
     }
 }

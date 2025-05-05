@@ -9,6 +9,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class BleDebugFragment : Fragment() {
     private lateinit var deviceInfoTextView: TextView
@@ -74,5 +75,28 @@ class BleDebugFragment : Fragment() {
                 sendBoxEditText.text.clear()
             }
         }
+
+        // 设置底部导航栏选中状态和点击监听
+//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
+//        bottomNav.selectedItemId = R.id.navigation_debug
+//
+//        bottomNav.setOnItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.navigation_home -> {
+//                    findNavController().navigate(R.id.actionFromBleDebugToHome)
+//                    true
+//                }
+//                R.id.navigation_ble -> {
+//                    findNavController().navigate(R.id.actionFromBleDebugToBleScan)
+//                    true
+//                }
+//                R.id.navigation_image -> {
+//                    findNavController().navigate(R.id.actionFromBleDebugToImageEdit)
+//                    true
+//                }
+//                R.id.navigation_debug -> true
+//                else -> false
+//            }
+//        }
     }
 }
