@@ -29,6 +29,7 @@ import com.example.t4.ble.BleDevice
 import com.example.t4.ble.BleDeviceAdapter
 import com.example.t4.databinding.FragmentBleScanBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.util.Log
 
 class BleScanFragment : Fragment() {
     private lateinit var binding: FragmentBleScanBinding
@@ -73,7 +74,8 @@ class BleScanFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+        Log.d("TTTT", "onCreate: 6789876!!")
+
         // 初始化 ActivityResultLauncher
         enableBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -111,6 +113,7 @@ class BleScanFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentBleScanBinding.inflate(inflater, container, false)
+        Log.d("TTTT", "onCreateView: 6789876!!")
         return binding.root
     }
 
@@ -119,32 +122,7 @@ class BleScanFragment : Fragment() {
         setupRecyclerView() // 确保先初始化 deviceAdapter
         setupSwipeRefresh()
         initBluetooth()
-
-        // 设置底部导航栏选中状态和点击监听
-//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
-//        bottomNav.selectedItemId = R.id.navigation_ble
-//
-//        bottomNav.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.navigation_home -> {
-//                    findNavController().navigate(R.id.actionFromBleScanToHome)
-//                    true
-//                }
-//                R.id.navigation_ble -> {
-//                    // 已经在蓝牙扫描页面，不需要导航
-//                    true
-//                }
-//                R.id.navigation_image -> {
-//                    findNavController().navigate(R.id.actionFromBleScanToImageEdit)
-//                    true
-//                }
-//                R.id.navigation_debug -> {
-//                    findNavController().navigate(R.id.actionFromBleScanToBleDebug)
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
+        Log.d("TTTT", "onViewCreated: 6789876!!")
     }
 
     private fun initBluetooth() {
@@ -168,6 +146,15 @@ class BleScanFragment : Fragment() {
             if (!isScanning) startBleScan()
             else binding.refreshLayout.isRefreshing = false
         }
+
+        // 设置刷新指示器的颜色
+        binding.refreshLayout.setColorSchemeResources(R.color.purple_500)
+
+        // 设置刷新指示器的背景为透明，避免遮蔽内容
+        binding.refreshLayout.setProgressBackgroundColorSchemeResource(android.R.color.transparent)
+
+        // 设置下拉刷新的距离，避免过度遮蔽
+        binding.refreshLayout.setDistanceToTriggerSync(300)
     }
 
     // 添加一个 Handler 成员变量
@@ -308,7 +295,7 @@ class BleScanFragment : Fragment() {
             putString("device_name", device.name)
             putString("device_address", device.address)
         }
-        findNavController().navigate(R.id.actionFromBleScanToBleDebug, bundle)
+//        findNavController().navigate(R.id.actionFromBleScanToBleDebug, bundle)
     }
 
     private fun showPermissionRationaleDialog() {

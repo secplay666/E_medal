@@ -33,28 +33,5 @@ class ImageEditFragment : Fragment() {
                 putString("image_path", "/sdcard/edited_image.jpg")
             }
         }
-
-        // 设置底部导航栏选中状态和点击监听
-//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
-//        bottomNav.selectedItemId = R.id.navigation_image
-//
-//        bottomNav.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.navigation_home -> {
-//                    findNavController().navigate(R.id.actionFromImageEditToHome)
-//                    true
-//                }
-//                R.id.navigation_ble -> {
-//                    findNavController().navigate(R.id.actionFromImageEditToBleScan)
-//                    true
-//                }
-//                R.id.navigation_image -> true
-//                R.id.navigation_debug -> {
-//                    findNavController().navigate(R.id.actionFromImageEditToBleDebug)
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
     }
 }

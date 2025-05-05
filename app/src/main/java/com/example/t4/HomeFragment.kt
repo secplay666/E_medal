@@ -21,31 +21,5 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // 设置底部导航栏选中状态和点击监听
-//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
-//        bottomNav.selectedItemId = R.id.navigation_home
-//
-//        bottomNav.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.navigation_home -> true
-//                R.id.navigation_ble -> {
-//                    findNavController().navigate(R.id.actionFromHomeToBleScan)
-//                    true
-//                }
-//
-//                R.id.navigation_image -> {
-//                    findNavController().navigate(R.id.actionFromHomeToImageEdit)
-//                    true
-//                }
-//
-//                R.id.navigation_debug -> {
-//                    findNavController().navigate(R.id.actionFromHomeToBleDebug)
-//                    true
-//                }
-//
-//                else -> false
-//            }
-//        }
     }
 }

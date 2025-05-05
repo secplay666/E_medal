@@ -11,25 +11,6 @@
         android:name="com.example.t4.HomeFragment"
         android:label="主页"
         tools:layout="@layout/fragment_home">
-
-        <!-- 三个跳转动作 -->
-        <action
-            android:id="@+id/actionFromHomeToImageEdit"
-            app:destination="@id/imageEditFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-        <action
-            android:id="@+id/actionFromHomeToBleScan"
-            app:destination="@id/bleScanFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-        <action
-            android:id="@+id/actionFromHomeToBleDebug"
-            app:destination="@id/bleDebugFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
     </fragment>
 
     <!-- 图像编辑页 -->
@@ -37,52 +18,7 @@
         android:id="@+id/imageEditFragment"
         android:name="com.example.t4.ImageEditFragment"
         android:label="图片编辑"
-        tools:layout="@layout/fragment_image_edit"/>
-
-        <!-- 三个跳转动作 -->
-        <action
-            android:id="@+id/actionFromImageEditToHome"
-            app:destination="@id/homeFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-        <action
-            android:id="@+id/actionFromImageEditToBleScan"
-            app:destination="@id/bleScanFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-        <action
-            android:id="@+id/actionFromImageEditToBleDebug"
-            app:destination="@id/bleDebugFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-
-    <!-- 蓝牙搜索页 -->
-    <fragment
-        android:id="@+id/bleScanFragment"
-        android:name="com.example.t4.BleScanFragment"
-        android:label="设备搜索"
-        tools:layout="@layout/fragment_ble_scan">
-
-        <action
-            android:id="@+id/actionFromBleScanToHome"
-            app:destination="@id/homeFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-        <action
-            android:id="@+id/actionFromBleScanToImageEdit"
-            app:destination="@id/imageEditFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
-
-        <action
-            android:id="@+id/actionFromBleScanToBleDebug"
-            app:destination="@id/bleDebugFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
+        tools:layout="@layout/fragment_image_edit">
     </fragment>
 
     <!-- 蓝牙调试页 -->
@@ -90,24 +26,39 @@
         android:id="@+id/bleDebugFragment"
         android:name="com.example.t4.BleDebugFragment"
         android:label="设备调试"
-        tools:layout="@layout/fragment_ble_debug"/>
+        tools:layout="@layout/fragment_ble_debug">
+    </fragment>
 
-        <action
-            android:id="@+id/actionFromBleDebugToHome"
-            app:destination="@id/homeFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
+    <!-- 蓝牙搜索页 -->
+    <fragment
+        android:id="@+id/bleScanFragment"
+        android:name="com.example.t4.BleScanFragment"
+        android:label="蓝牙设备搜索"
+        tools:layout="@layout/fragment_ble_scan">
+    </fragment>
 
-        <action
-            android:id="@+id/actionFromBleDebugToImageEdit"
-            app:destination="@id/imageEditFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
+    <action
+        android:id="@+id/actionToImageEdit"
+        app:destination="@id/imageEditFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"/>
 
-        <action
-            android:id="@+id/actionFromBleDebugToBleScan"
-            app:destination="@id/bleDebugFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"/>
+    <action
+        android:id="@+id/actionToBleScan"
+        app:destination="@id/bleScanFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"/>
+
+    <action
+        android:id="@+id/actionToBleDebug"
+        app:destination="@id/bleDebugFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"/>
+
+    <action
+        android:id="@+id/actionToHome"
+        app:destination="@id/homeFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:exitAnim="@anim/slide_out_left"/>
 
 </navigation>

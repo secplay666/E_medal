@@ -39,6 +39,5 @@
         android:layout_gravity="bottom"
         app:menu="@menu/bottom_nav_menu" />
 
-    <include layout="@layout/content_main"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

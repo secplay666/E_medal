@@ -75,28 +75,5 @@ class BleDebugFragment : Fragment() {
                 sendBoxEditText.text.clear()
             }
         }
-
-        // 设置底部导航栏选中状态和点击监听
-//        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigation)
-//        bottomNav.selectedItemId = R.id.navigation_debug
-//
-//        bottomNav.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.navigation_home -> {
-//                    findNavController().navigate(R.id.actionFromBleDebugToHome)
-//                    true
-//                }
-//                R.id.navigation_ble -> {
-//                    findNavController().navigate(R.id.actionFromBleDebugToBleScan)
-//                    true
-//                }
-//                R.id.navigation_image -> {
-//                    findNavController().navigate(R.id.actionFromBleDebugToImageEdit)
-//                    true
-//                }
-//                R.id.navigation_debug -> true
-//                else -> false
-//            }
-//        }
     }
 }

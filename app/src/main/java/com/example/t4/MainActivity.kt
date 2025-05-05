@@ -8,6 +8,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import android.view.Menu
 import android.view.MenuItem
 import com.example.t4.databinding.ActivityMainBinding
@@ -30,55 +31,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-//        binding.toolbar.visibility = View.VISIBLE
-//        binding.bottomNavigation.visibility = View.VISIBLE
+        
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
-        appBarConfiguration = AppBarConfiguration(navController.graph)
+        
+        // 设置顶级目的地，这样在这些目的地之间导航时不会创建返回栈
+        appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.imageEditFragment, R.id.bleDebugFragment)
+        )
+        
         setupActionBarWithNavController(navController, appBarConfiguration)
-
-        // 设置底部导航栏的点击事件
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_home -> {
-                    navController.navigate(R.id.homeFragment)
-                    true
-                }
-                R.id.navigation_ble -> {
-                    navController.navigate(R.id.bleScanFragment)
-                    true
-                }
-                R.id.navigation_image -> {
-                    navController.navigate(R.id.imageEditFragment)
-                    true
-                }
-                R.id.navigation_debug -> {
-                    navController.navigate(R.id.bleDebugFragment)
-                    true
-                }
-                else -> false
-            }
+        binding.bottomNavigation.setupWithNavController(navController)
+        
+        // 可以添加导航监听器来控制界面元素的可见性
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            // 根据需要控制界面元素的可见性
         }
-
-//        // 添加导航监听器，根据当前页面控制Toolbar的可见性
-//        navController.addOnDestinationChangedListener { _, destination, _ ->
-//            when (destination.id) {
-//                R.id.homeFragment -> {
-//                    // 在主页显示Toolbar
-//                    supportActionBar?.show()
-//                    binding.toolbar.visibility = View.VISIBLE
-//                    binding.bottomNavigation.visibility = View.VISIBLE
-//                }
-//                else -> {
-//                    // 在其他页面隐藏Toolbar，但保留底部导航栏
-//                    supportActionBar?.hide()
-//                    binding.toolbar.visibility = View.GONE
-//                    binding.bottomNavigation.visibility = View.VISIBLE
-//                }
-//            }
-//        }
-
-//        Log.d(TAG, "onCreate: 6789876!!")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
