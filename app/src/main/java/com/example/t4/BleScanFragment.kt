@@ -54,19 +54,26 @@ class BleScanFragment : Fragment() {
             val rssi = result.rssi
             val scanRecord = result.scanRecord?.bytes ?: ByteArray(0)
             
+            Log.d("BLE_SCAN", "扫描到设备: ${device.address}")
+            
             activity?.runOnUiThread {
                 // 添加权限检查
                 if (hasBluetoothPermissions()) {
                     try {
                         val deviceName = device.name // 这里需要 BLUETOOTH_CONNECT 权限
+                        Log.d("BLE_SCAN", "设备名称: $deviceName, 信号强度: $rssi")
                         val bleDevice = BleDevice(deviceName, device.address, rssi, scanRecord)
                         if (!currentDevices.contains(bleDevice)) {
                             currentDevices.add(bleDevice)
                             deviceAdapter.updateList(currentDevices)
+                            Log.d("BLE_SCAN", "添加设备到列表，当前列表大小: ${currentDevices.size}")
                         }
                     } catch (e: SecurityException) {
+                        Log.e("BLE_SCAN", "权限错误: ${e.message}")
                         Toast.makeText(context, "缺少蓝牙连接权限", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    Log.e("BLE_SCAN", "缺少蓝牙权限")
                 }
             }
         }
@@ -117,11 +124,35 @@ class BleScanFragment : Fragment() {
         return binding.root
     }
 
+    private fun logPermissionStatus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val scanPermission = ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED
+            
+            val connectPermission = ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+            
+            Log.d("BLE_SCAN", "权限状态 - BLUETOOTH_SCAN: $scanPermission, BLUETOOTH_CONNECT: $connectPermission")
+        } else {
+            val locationPermission = ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            
+            Log.d("BLE_SCAN", "权限状态 - ACCESS_FINE_LOCATION: $locationPermission")
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView() // 确保先初始化 deviceAdapter
         setupSwipeRefresh()
         initBluetooth()
+        logPermissionStatus() // 添加权限状态日志
         Log.d("TTTT", "onViewCreated: 6789876!!")
     }
 
@@ -150,11 +181,9 @@ class BleScanFragment : Fragment() {
         // 设置刷新指示器的颜色
         binding.refreshLayout.setColorSchemeResources(R.color.purple_500)
 
-        // 设置刷新指示器的背景为透明，避免遮蔽内容
-        binding.refreshLayout.setProgressBackgroundColorSchemeResource(android.R.color.transparent)
-
-        // 设置下拉刷新的距离，避免过度遮蔽
-        binding.refreshLayout.setDistanceToTriggerSync(300)
+        // 移除可能影响功能的设置
+        // binding.refreshLayout.setProgressBackgroundColorSchemeResource(android.R.color.transparent)
+        // binding.refreshLayout.setDistanceToTriggerSync(300)
     }
 
     // 添加一个 Handler 成员变量
@@ -167,7 +196,27 @@ class BleScanFragment : Fragment() {
         }
         
         if (!checkBluetoothEnabled()) return
-
+        
+        // 检查蓝牙适配器状态
+        if (!::bluetoothAdapter.isInitialized || !bluetoothAdapter.isEnabled) {
+            Log.e("BLE_SCAN", "蓝牙适配器未初始化或未启用")
+            Toast.makeText(context, "蓝牙未启用", Toast.LENGTH_SHORT).show()
+            binding.refreshLayout.isRefreshing = false
+            return
+        }
+        
+        if (!::bluetoothLeScanner.isInitialized) {
+            Log.e("BLE_SCAN", "蓝牙扫描器未初始化")
+            try {
+                bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
+            } catch (e: Exception) {
+                Log.e("BLE_SCAN", "初始化蓝牙扫描器失败: ${e.message}")
+                Toast.makeText(context, "初始化蓝牙扫描器失败", Toast.LENGTH_SHORT).show()
+                binding.refreshLayout.isRefreshing = false
+                return
+            }
+        }
+        
         currentDevices.clear()
         deviceAdapter.updateList(currentDevices)
         isScanning = true
@@ -184,13 +233,16 @@ class BleScanFragment : Fragment() {
             try {
                 // 使用新的扫描方法
                 bluetoothLeScanner.startScan(scanCallback)
+                Log.d("BLE_SCAN", "扫描已启动")
             } catch (e: SecurityException) {
+                Log.e("BLE_SCAN", "启动扫描失败: ${e.message}")
                 Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()
                 binding.refreshLayout.isRefreshing = false
                 binding.scanProgress.visibility = View.GONE
                 isScanning = false
             }
         } else {
+            Log.e("BLE_SCAN", "缺少蓝牙扫描权限")
             Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()
             binding.refreshLayout.isRefreshing = false
             binding.scanProgress.visibility = View.GONE
