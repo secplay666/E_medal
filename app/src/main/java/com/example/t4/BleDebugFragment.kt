@@ -9,7 +9,6 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class BleDebugFragment : Fragment() {
     private lateinit var deviceInfoTextView: TextView

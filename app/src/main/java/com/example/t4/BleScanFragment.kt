@@ -182,8 +182,8 @@ class BleScanFragment : Fragment() {
         binding.refreshLayout.setColorSchemeResources(R.color.purple_500)
 
         // 移除可能影响功能的设置
-        // binding.refreshLayout.setProgressBackgroundColorSchemeResource(android.R.color.transparent)
-        // binding.refreshLayout.setDistanceToTriggerSync(300)
+         binding.refreshLayout.setProgressBackgroundColorSchemeResource(android.R.color.transparent)
+         binding.refreshLayout.setDistanceToTriggerSync(300)
     }
 
     // 添加一个 Handler 成员变量
