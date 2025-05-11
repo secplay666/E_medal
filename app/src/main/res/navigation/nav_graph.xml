@@ -37,6 +37,21 @@
         tools:layout="@layout/fragment_ble_scan">
     </fragment>
 
+    <fragment
+        android:id="@+id/bleDeviceFragment"
+        android:name="com.example.t4.BleDeviceFragment"
+        android:label="蓝牙设备详情"
+        tools:layout="@layout/fragment_ble_device">
+        <argument
+            android:name="device_name"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="device_address"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+
     <action
         android:id="@+id/actionToImageEdit"
         app:destination="@id/imageEditFragment"
@@ -61,4 +76,7 @@
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"/>
 
+    <action
+        android:id="@+id/action_bleScanFragment_to_bleDeviceFragment"
+        app:destination="@id/bleDeviceFragment" />
 </navigation>

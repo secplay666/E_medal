@@ -231,12 +231,17 @@ class BleScanFragment : Fragment() {
             stopBleScan()
         }, 10000)
 
+        // 设置扫描设置，提高扫描效率
+        val scanSettings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY) // 使用高功率扫描模式
+            .build()
+        
         // 添加权限检查
         if (hasBluetoothPermissions()) {
             try {
-                // 使用新的扫描方法
-                bluetoothLeScanner.startScan(scanCallback)
-                Log.d("BLE_SCAN", "扫描已启动")
+                // 使用新的扫描方法，添加扫描设置
+                bluetoothLeScanner.startScan(null, scanSettings, scanCallback)
+                Log.d("BLE_SCAN", "扫描已启动，使用高功率模式")
             } catch (e: SecurityException) {
                 Log.e("BLE_SCAN", "启动扫描失败: ${e.message}")
                 Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()
@@ -326,11 +331,35 @@ class BleScanFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        Log.d("BLE_SCAN", "onResume: 清空设备列表并重新扫描")
+        // 清空设备列表
+        currentDevices.clear()
+        if (::deviceAdapter.isInitialized) {
+            deviceAdapter.updateList(currentDevices)
+        }
+        // 开始扫描
+        if (!isScanning) {
+            startBleScan()
+        }
+    }
+
     override fun onPause() {
         super.onPause()
         if (isScanning) {
             stopBleScan()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isScanning) {
+            stopBleScan()
+        }
+        // 清空设备列表
+        currentDevices.clear()
+        Log.d("BLE_SCAN", "Fragment销毁，清空设备列表")
     }
 
     companion object {
@@ -369,20 +398,27 @@ class BleScanFragment : Fragment() {
         val connectButton = dialogView.findViewById<Button>(R.id.connectButton)
         connectButton.isEnabled = isConnectable
         
-        // 设置连接按钮点击事件
-        connectButton.setOnClickListener {
-            // 连接到设备的逻辑
-            Toast.makeText(requireContext(), "正在连接到设备: ${device.address}", Toast.LENGTH_SHORT).show()
-            // 这里添加实际的连接逻辑
-            // ...
-        }
-        
         // 创建对话框
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("设备详情")
             .setView(dialogView)
             .setPositiveButton("关闭", null)
             .create()
+        
+        // 设置连接按钮点击事件
+        connectButton.setOnClickListener {
+            // 关闭对话框
+            dialog.dismiss()
+            
+            // 创建导航参数
+            val bundle = Bundle().apply {
+                putString("device_name", device.name)
+                putString("device_address", device.address)
+            }
+            
+            // 导航到设备详情页面
+            findNavController().navigate(R.id.action_bleScanFragment_to_bleDeviceFragment, bundle)
+        }
         
         // 显示对话框
         dialog.show()
