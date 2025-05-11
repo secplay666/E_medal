@@ -377,13 +377,23 @@ class BleScanFragment : Fragment() {
             // ...
         }
         
-        // 创建并显示对话框
-        AlertDialog.Builder(requireContext())
+        // 创建对话框
+        val dialog = AlertDialog.Builder(requireContext())
             .setTitle("设备详情")
             .setView(dialogView)
             .setPositiveButton("关闭", null)
             .create()
-            .show()
+        
+        // 显示对话框
+        dialog.show()
+        
+        // 设置对话框的最大高度为屏幕高度的80%
+        val window = dialog.window
+        if (window != null) {
+            val displayMetrics = resources.displayMetrics
+            val height = displayMetrics.heightPixels
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (height * 0.8).toInt())
+        }
     }
 
     private fun showPermissionRationaleDialog() {

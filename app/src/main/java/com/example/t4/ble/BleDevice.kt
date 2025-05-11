@@ -15,12 +15,32 @@ data class BleDevice(
     val isConnectable: Boolean
         get() {
             if (scanRecord.isEmpty()) return false
-
-            // 根据广播数据判断设备是否可连接
-            // 通常，广播数据的第一个字节的第0位表示设备是否可连接
+            
+            // 正确解析广播数据中的 Flags 字段
             return try {
-                val flags = scanRecord[0].toInt() and 0xFF
-                (flags and 0x01) == 0x01
+                var index = 0
+                while (index < scanRecord.size) {
+                    val length = scanRecord[index].toInt() and 0xFF
+                    if (length == 0) break
+                    
+                    if (index + 1 < scanRecord.size) {
+                        val type = scanRecord[index + 1].toInt() and 0xFF
+                        
+                        // 查找 Flags 字段 (AD Type = 0x01)
+                        if (type == 0x01 && index + 2 < scanRecord.size) {
+                            val flags = scanRecord[index + 2].toInt() and 0xFF
+                            // 检查 LE General Discoverable Mode 位 (bit 1)
+                            // 或 LE Limited Discoverable Mode 位 (bit 0)
+                            return (flags and 0x03) != 0
+                        }
+                    }
+                    
+                    index += (length + 1)
+                }
+                
+                // 如果没有找到 Flags 字段，默认认为设备可连接
+                // 很多设备可能不包含 Flags 字段，但仍然可以连接
+                true
             } catch (e: Exception) {
                 false
             }
