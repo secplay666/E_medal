@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context.BLUETOOTH_SERVICE
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,6 +19,8 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -342,12 +345,45 @@ class BleScanFragment : Fragment() {
             stopBleScan()
         }
         
-        // 保存设备信息到导航参数
-        val bundle = Bundle().apply {
-            putString("device_name", device.name)
-            putString("device_address", device.address)
+        // 显示设备详情弹窗
+        showDeviceDetailDialog(device)
+    }
+
+    private fun showDeviceDetailDialog(device: BleDevice) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_device_detail, null)
+        
+        // 设置设备信息
+        dialogView.findViewById<TextView>(R.id.deviceName).text = device.name ?: "未知设备"
+        dialogView.findViewById<TextView>(R.id.deviceAddress).text = device.address
+        dialogView.findViewById<TextView>(R.id.deviceRssi).text = "${device.rssi} dBm"
+        
+        // 解析并显示广播数据
+        val advertisementData = device.parseAdvertisementData()
+        dialogView.findViewById<TextView>(R.id.advertisementData).text = advertisementData
+        
+        // 设置可连接状态
+        val isConnectable = device.isConnectable
+        dialogView.findViewById<TextView>(R.id.connectable).text = if (isConnectable) "可连接" else "不可连接"
+        
+        // 设置连接按钮状态
+        val connectButton = dialogView.findViewById<Button>(R.id.connectButton)
+        connectButton.isEnabled = isConnectable
+        
+        // 设置连接按钮点击事件
+        connectButton.setOnClickListener {
+            // 连接到设备的逻辑
+            Toast.makeText(requireContext(), "正在连接到设备: ${device.address}", Toast.LENGTH_SHORT).show()
+            // 这里添加实际的连接逻辑
+            // ...
         }
-//        findNavController().navigate(R.id.actionFromBleScanToBleDebug, bundle)
+        
+        // 创建并显示对话框
+        AlertDialog.Builder(requireContext())
+            .setTitle("设备详情")
+            .setView(dialogView)
+            .setPositiveButton("关闭", null)
+            .create()
+            .show()
     }
 
     private fun showPermissionRationaleDialog() {
