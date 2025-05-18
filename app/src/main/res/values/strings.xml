@@ -19,4 +19,7 @@
     <string name="P1">This is P1</string>
     <string name="P2">This is P2</string>
     <string name="P3">This is P3</string>
+    <string name="disconnect">断开</string>
+    <string name="receive">接收</string>
+    <string name="send">发送</string>
 </resources>
