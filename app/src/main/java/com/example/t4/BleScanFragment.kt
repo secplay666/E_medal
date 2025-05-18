@@ -374,8 +374,19 @@ class BleScanFragment : Fragment() {
             stopBleScan()
         }
         
-        // 显示设备详情弹窗
-        showDeviceDetailDialog(device)
+        // 检查设备名称是否以"E104-"开头
+        if (device.name?.startsWith("E104-") == true) {
+            // 对于E104-设备，直接导航到BleDebugFragment
+            val bundle = Bundle().apply {
+                putString("device_name", device.name)
+                putString("device_address", device.address)
+                putBoolean("is_e104_device", true)
+            }
+            findNavController().navigate(R.id.bleDebugFragment, bundle)
+        } else {
+            // 对于其他设备，显示设备详情弹窗
+            showDeviceDetailDialog(device)
+        }
     }
 
     private fun showDeviceDetailDialog(device: BleDevice) {
