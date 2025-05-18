@@ -1,23 +1,22 @@
 package com.example.t4
 
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import com.google.android.material.snackbar.Snackbar
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import android.view.Menu
-import android.view.MenuItem
 import com.example.t4.databinding.ActivityMainBinding
-import androidx.navigation.fragment.NavHostFragment
-import android.view.View
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import kotlin.math.log
+import android.util.Log
 
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -27,25 +26,51 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 设置 Edge-to-Edge 布局
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+        }
+        
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
+        // 安全获取 NavHostFragment
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        if (navHostFragment is NavHostFragment) {
+            val navController = navHostFragment.navController
+            
+            // 设置顶级目的地，这样在这些目的地之间导航时不会创建返回栈
+            appBarConfiguration = AppBarConfiguration(
+                setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.imageEditFragment, R.id.bleDebugFragment)
+            )
+            
+            setSupportActionBar(binding.topAppBar)
+            setupActionBarWithNavController(navController, appBarConfiguration)
+            binding.bottomNavigation.setupWithNavController(navController)
+            
+            // 可以添加导航监听器来控制界面元素的可见性
+            navController.addOnDestinationChangedListener { _, _, _ ->
+                // 根据需要控制界面元素的可见性
+            }
+        } else {
+            // 处理 NavHostFragment 不存在的情况
+            Log.e("MainActivity", "NavHostFragment 未找到或类型不匹配")
+        }
         
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
-        
-        // 设置顶级目的地，这样在这些目的地之间导航时不会创建返回栈
-        appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.imageEditFragment, R.id.bleDebugFragment)
-        )
-        
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        binding.bottomNavigation.setupWithNavController(navController)
-        
-        // 可以添加导航监听器来控制界面元素的可见性
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            // 根据需要控制界面元素的可见性
+        // 处理系统 UI 区域
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, windowInsets ->
+                val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                
+                // 为顶部和底部添加内边距
+                view.setPadding(0, insets.top, 0, insets.bottom)
+                
+                WindowInsetsCompat.CONSUMED
+            }
         }
     }
 
@@ -66,10 +91,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.navController
-//        Log.d(TAG, "onSupportNavigateUp: MainA")
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+        return if (navHostFragment is NavHostFragment) {
+            val navController = navHostFragment.navController
+            navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+        } else {
+            super.onSupportNavigateUp()
+        }
     }
 }
