@@ -8,10 +8,7 @@
             android:id="@+id/bleScanFragment"
             android:icon="@drawable/baseline_bluetooth_24"
             android:title="蓝牙" />
-        <item
-            android:id="@+id/imageEditFragment"
-            android:icon="@drawable/add_photo_alternate_24px"
-            android:title="图像" />
+        <!-- 图像编辑选项已移除，因为它只能通过从主页选择图片来访问 -->
         <item
             android:id="@+id/bleDebugFragment"
             android:icon="@drawable/debug_control_24px"

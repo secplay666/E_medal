@@ -1,4 +1,5 @@
 <resources>
+    <string name="gallery_image_desc">画廊图片</string> 
     <string name="app_name">T4</string>
     <string name="unknown_device">未知设备</string>
     <string name="rssi_format">信号强度: %d dBm</string>
@@ -15,7 +16,17 @@
     <string name="btn_text_desc">添加文本</string>
     <string name="btn_download_desc">下载到下位机</string>
     <string name="btn_save_desc">保存修改</string>
+    <string name="btn_back_desc">返回</string>
+    <string name="btn_original_desc">原始图片</string>
+    <string name="btn_binarize_desc">二值化</string>
+    <string name="btn_adaptive_binarize_desc">自适应二值化</string>
+    <string name="threshold_value">二值化阈值</string>
     <string name="ImageView">编辑图片</string>
+    <string name="image_gallery_title">图片画廊</string>
+    <string name="no_images_found">没有找到图片</string>
+    <string name="storage_permission_required">需要存储权限来访问图片</string>
+    <string name="image_saved">图片已保存</string>
+    <string name="error_loading_image">加载图片失败</string>
     <string name="P1">This is P1</string>
     <string name="P2">This is P2</string>
     <string name="P3">This is P3</string>

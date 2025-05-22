@@ -45,16 +45,23 @@ class MainActivity : AppCompatActivity() {
             
             // 设置顶级目的地，这样在这些目的地之间导航时不会创建返回栈
             appBarConfiguration = AppBarConfiguration(
-                setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.imageEditFragment, R.id.bleDebugFragment)
+                setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.bleDebugFragment)
             )
             
             setSupportActionBar(binding.topAppBar)
             setupActionBarWithNavController(navController, appBarConfiguration)
+            
+            // 设置底部导航栏与导航控制器的关联
             binding.bottomNavigation.setupWithNavController(navController)
             
-            // 可以添加导航监听器来控制界面元素的可见性
-            navController.addOnDestinationChangedListener { _, _, _ ->
-                // 根据需要控制界面元素的可见性
+            // 添加导航监听器来控制界面元素的可见性
+            navController.addOnDestinationChangedListener { _, destination, _ ->
+                // 在图像编辑界面隐藏底部导航栏
+                if (destination.id == R.id.imageEditFragment) {
+                    binding.bottomNavigation.visibility = View.GONE
+                } else {
+                    binding.bottomNavigation.visibility = View.VISIBLE
+                }
             }
         } else {
             // 处理 NavHostFragment 不存在的情况

@@ -1,0 +1,5 @@
+ERROR   | Unknown AVD name [INFO    | Storing crashdata in: /tmp/android-zhengjiaye/emu-crash-34.1.20.db, detection is enabled for process: 25279], use -list-avds to see valid list.
+ERROR   | HOME is defined but there is no file INFO    | Storing crashdata in: /tmp/android-zhengjiaye/emu-crash-34.1.20.db, detection is enabled for process: 25279.ini in $HOME/.android/avd
+ERROR   | (Note: Directories are searched in the order $ANDROID_AVD_HOME, $ANDROID_SDK_HOME/avd and $HOME/.android/avd)
+INFO    | Storing crashdata in: /tmp/android-zhengjiaye/emu-crash-34.1.20.db, detection is enabled for process: 25294
+INFO    | Android emulator version 34.1.20.0 (build_id 11610631) (CL:N/A)
