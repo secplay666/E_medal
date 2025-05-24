@@ -11,6 +11,11 @@
         android:name="com.example.t4.HomeFragment"
         android:label="主页"
         tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeFragment_to_imageEditFragment"
+            app:destination="@id/imageEditFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left" />
     </fragment>
 
     <!-- 图像编辑页 -->
@@ -19,6 +24,10 @@
         android:name="com.example.t4.ImageEditFragment"
         android:label="图片编辑"
         tools:layout="@layout/fragment_image_edit">
+        <argument
+            android:name="image_uri"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
 
     <!-- 蓝牙调试页 -->
@@ -35,6 +44,9 @@
         android:name="com.example.t4.BleScanFragment"
         android:label="蓝牙设备搜索"
         tools:layout="@layout/fragment_ble_scan">
+        <action
+            android:id="@+id/action_bleScanFragment_to_bleDeviceFragment"
+            app:destination="@id/bleDeviceFragment" />
     </fragment>
 
     <fragment
@@ -75,8 +87,4 @@
         app:destination="@id/homeFragment"
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"/>
-
-    <action
-        android:id="@+id/action_bleScanFragment_to_bleDeviceFragment"
-        app:destination="@id/bleDeviceFragment" />
 </navigation>

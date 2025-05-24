@@ -14,6 +14,10 @@
     <!-- 位置权限（蓝牙扫描需要） -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- 存储权限 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <!-- 声明蓝牙功能 -->
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />

@@ -1,0 +1,979 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.8.1" type="baseline" client="gradle" dependencies="false" name="AGP (8.8.1)" variant="all" version="8.8.1">
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                        gatt.writeDescriptor(descriptor)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/t4/BleDebugFragment.kt"
+            line="391"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="MissingPermission"
+        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
+        errorLine1="                        gatt.setCharacteristicNotification(characteristic, true)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/t4/BleDebugFragment.kt"
+            line="394"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="SdCardPath"
+        message="Do not hardcode &quot;/sdcard/&quot;; use `Environment.getExternalStorageDirectory().getPath()` instead"
+        errorLine1="                putString(&quot;image_path&quot;, &quot;/sdcard/edited_image.jpg&quot;)"
+        errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/t4/ImageEditFragment.kt"
+            line="33"
+            column="42"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `usesPermissionFlags` is only used in API level 31 and higher (current min is 24)"
+        errorLine1="        android:usesPermissionFlags=&quot;neverForLocation&quot; />"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="11"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="RedundantLabel"
+        message="Redundant label can be removed"
+        errorLine1="            android:label=&quot;@string/app_name&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="32"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of com.android.application than 8.8.1 is available: 8.10.0. (There is also a newer version of 8.8.𝑥 available, if upgrading to 8.10.0 is difficult: 8.8.2)"
+        errorLine1="agp = &quot;8.8.1&quot;"
+        errorLine2="      ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="2"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of com.android.application than 8.8.1 is available: 8.10.0. (There is also a newer version of 8.8.𝑥 available, if upgrading to 8.10.0 is difficult: 8.8.2)"
+        errorLine1="agp = &quot;8.8.1&quot;"
+        errorLine2="      ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="2"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of com.android.application than 8.8.1 is available: 8.10.0. (There is also a newer version of 8.8.𝑥 available, if upgrading to 8.10.0 is difficult: 8.8.2)"
+        errorLine1="agp = &quot;8.8.1&quot;"
+        errorLine2="      ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="2"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.15.0 is available: 1.16.0"
+        errorLine1="coreKtx = &quot;1.15.0&quot;"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="4"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.15.0 is available: 1.16.0"
+        errorLine1="coreKtx = &quot;1.15.0&quot;"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="4"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.15.0 is available: 1.16.0"
+        errorLine1="coreKtx = &quot;1.15.0&quot;"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="4"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-fragment-ktx than 2.8.9 is available: 2.9.0"
+        errorLine1="navigationFragmentKtx = &quot;2.8.9&quot;"
+        errorLine2="                        ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="11"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-fragment-ktx than 2.8.9 is available: 2.9.0"
+        errorLine1="navigationFragmentKtx = &quot;2.8.9&quot;"
+        errorLine2="                        ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="11"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-fragment-ktx than 2.8.9 is available: 2.9.0"
+        errorLine1="navigationFragmentKtx = &quot;2.8.9&quot;"
+        errorLine2="                        ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="11"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-ui-ktx than 2.8.9 is available: 2.9.0"
+        errorLine1="navigationUiKtx = &quot;2.8.9&quot;"
+        errorLine2="                  ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="12"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-ui-ktx than 2.8.9 is available: 2.9.0"
+        errorLine1="navigationUiKtx = &quot;2.8.9&quot;"
+        errorLine2="                  ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="12"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-ui-ktx than 2.8.9 is available: 2.9.0"
+        errorLine1="navigationUiKtx = &quot;2.8.9&quot;"
+        errorLine2="                  ~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="12"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.swiperefreshlayout:swiperefreshlayout than 1.2.0-alpha01 is available: 1.2.0-beta01"
+        errorLine1="swiperefresh = &quot;1.2.0-alpha01&quot;"
+        errorLine2="               ~~~~~~~~~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="13"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.swiperefreshlayout:swiperefreshlayout than 1.2.0-alpha01 is available: 1.2.0-beta01"
+        errorLine1="swiperefresh = &quot;1.2.0-alpha01&quot;"
+        errorLine2="               ~~~~~~~~~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="13"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.swiperefreshlayout:swiperefreshlayout than 1.2.0-alpha01 is available: 1.2.0-beta01"
+        errorLine1="swiperefresh = &quot;1.2.0-alpha01&quot;"
+        errorLine2="               ~~~~~~~~~~~~~~~">
+        <location
+            file="$HOME/projects/research/draft/Libian/zh_workshop/E_medal/gradle/libs.versions.toml"
+            line="13"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `Build.VERSION.SDK_INT >= Build.VERSION_CODES.M` is never true here (`SDK_INT` ≥ 24 and &lt; 31)"
+        errorLine1="        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/t4/BleScanFragment.kt"
+            line="305"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v23`) is unnecessary; `minSdkVersion` is 24. Merge all the resources in this folder into `values`.">
+        <location
+            file="src/main/res/values-v23"/>
+    </issue>
+
+    <issue
+        id="VectorPath"
+        message="Very long vector path (904 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
+        errorLine1="      android:pathData=&quot;M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z&quot;/>"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/baseline_settings_24.xml"
+            line="9"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="VectorPath"
+        message="Very long vector path (1008 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
+        errorLine1="      android:pathData=&quot;M480,840Q416,840 365.5,807Q315,774 283,720L188,774L148,705L251,645Q248,634 246,622.5Q244,611 242,600L120,600L120,520L242,520Q244,508 246,496.5Q248,485 251,474L148,414L188,345L282,400Q290,386 300.5,372.5Q311,359 322,348Q320,341 320,334Q320,327 320,320Q320,296 327,274Q334,252 346,233L280,167L336,110L406,178Q423,169 441.5,164.5Q460,160 480,160Q500,160 519,165Q538,170 555,179L624,110L680,167L614,233Q626,252 632.5,274Q639,296 639,320Q639,327 639,333.5Q639,340 637,347Q648,358 658.5,372Q669,386 677,400L772,346L812,415L708,474Q711,485 713.5,496.5Q716,508 718,520L840,520L840,600L718,600Q716,612 714,623.5Q712,635 709,646L812,706L772,775L677,720Q645,774 594.5,807Q544,840 480,840ZM404,294Q421,287 440.5,283.5Q460,280 480,280Q500,280 518.5,283Q537,286 554,293Q546,270 526,255Q506,240 480,240Q454,240 433,255.5Q412,271 404,294ZM480,760Q553,760 596.5,699Q640,638 640,560Q640,490 599.5,425Q559,360 480,360Q402,360 361,424.5Q320,489 320,560Q320,638 363.5,699Q407,760 480,760ZM440,680L440,440L520,440L520,680L440,680Z&quot;/>"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/drawable/debug_control_24px.xml"
+            line="9"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="KaptUsageInsteadOfKsp"
+        message="This library supports using KSP instead of kapt, which greatly improves performance. Learn more: https://developer.android.com/studio/build/migrate-to-ksp"
+        errorLine1="    kapt &apos;com.github.bumptech.glide:compiler:4.16.0&apos;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="46"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `@android:color/white` with a theme that also paints a background (inferred theme is `@style/Theme.T4`)"
+        errorLine1="    android:background=&quot;@android:color/white&quot;>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="6"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `@android:color/white` with a theme that also paints a background (inferred theme is `@style/Theme.T4`)"
+        errorLine1="    android:background=&quot;@android:color/white&quot;"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_device.xml"
+            line="6"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `@android:color/white` with a theme that also paints a background (inferred theme is `@style/Theme.T4`)"
+        errorLine1="    android:background=&quot;@android:color/white&quot;>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_scan.xml"
+            line="7"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `@color/white` with a theme that also paints a background (inferred theme is `@style/Theme.T4`)"
+        errorLine1="    android:background=&quot;@color/white&quot;>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_home.xml"
+            line="7"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `@android:color/white` with a theme that also paints a background (inferred theme is `@style/Theme.T4`)"
+        errorLine1="    android:background=&quot;@android:color/white&quot;>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="7"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="Overdraw"
+        message="Possible overdraw: Root element paints background `?attr/selectableItemBackground` with a theme that also paints a background (inferred theme is `@style/Theme.T4`)"
+        errorLine1="    android:background=&quot;?attr/selectableItemBackground&quot;>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_device.xml"
+            line="8"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.xml.backup_rules` appears to be unused"
+        errorLine1="&lt;full-backup-content>"
+        errorLine2="^">
+        <location
+            file="src/main/res/xml/backup_rules.xml"
+            line="8"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.baseline_person_24` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/baseline_person_24.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.drawable.baseline_settings_24` appears to be unused"
+        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2="^">
+        <location
+            file="src/main/res/drawable/baseline_settings_24.xml"
+            line="1"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.purple_200` appears to be unused"
+        errorLine1="    &lt;color name=&quot;purple_200&quot;>#FFBB86FC&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="3"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.text_primary` appears to be unused"
+        errorLine1="    &lt;color name=&quot;text_primary&quot;>#2D3748&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="9"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.background_light` appears to be unused"
+        errorLine1="    &lt;color name=&quot;background_light&quot;>#FFFFFF&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="10"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.colorPrimary` appears to be unused"
+        errorLine1="    &lt;color name=&quot;colorPrimary&quot;>#6200EE&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="12"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.colorPrimaryDark` appears to be unused"
+        errorLine1="    &lt;color name=&quot;colorPrimaryDark&quot;>#3700B3&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="13"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.color.colorAccent` appears to be unused"
+        errorLine1="    &lt;color name=&quot;colorAccent&quot;>#03DAC5&lt;/color>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/colors.xml"
+            line="14"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.layout.content_main` appears to be unused"
+        errorLine1="&lt;androidx.constraintlayout.widget.ConstraintLayout"
+        errorLine2="^">
+        <location
+            file="src/main/res/layout/content_main.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.xml.data_extraction_rules` appears to be unused"
+        errorLine1="&lt;data-extraction-rules>"
+        errorLine2="^">
+        <location
+            file="src/main/res/xml/data_extraction_rules.xml"
+            line="6"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.dimen.fab_margin` appears to be unused"
+        errorLine1="    &lt;dimen name=&quot;fab_margin&quot;>16dp&lt;/dimen>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/dimens.xml"
+            line="2"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.anim.slide_in_bottom` appears to be unused"
+        errorLine1="&lt;set xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/anim/slide_in_bottom.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.anim.slide_out_top` appears to be unused"
+        errorLine1="&lt;set xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/anim/slide_out_top.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.first_fragment_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;first_fragment_label&quot;>First Fragment&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="9"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.second_fragment_label` appears to be unused"
+        errorLine1="    &lt;string name=&quot;second_fragment_label&quot;>Second Fragment&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="10"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.next` appears to be unused"
+        errorLine1="    &lt;string name=&quot;next&quot;>Next&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="11"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.previous` appears to be unused"
+        errorLine1="    &lt;string name=&quot;previous&quot;>Previous&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="12"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.P1` appears to be unused"
+        errorLine1="    &lt;string name=&quot;P1&quot;>This is P1&lt;/string>"
+        errorLine2="            ~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="20"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.P2` appears to be unused"
+        errorLine1="    &lt;string name=&quot;P2&quot;>This is P2&lt;/string>"
+        errorLine2="            ~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="21"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.P3` appears to be unused"
+        errorLine1="    &lt;string name=&quot;P3&quot;>This is P3&lt;/string>"
+        errorLine2="            ~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="22"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.TextButton` appears to be unused"
+        errorLine1="    &lt;style name=&quot;TextButton&quot; parent=&quot;Widget.MaterialComponents.Button.TextButton&quot;>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="2"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.AppTheme_Dark` appears to be unused"
+        errorLine1="    &lt;style name=&quot;AppTheme.Dark&quot; parent=&quot;Theme.AppCompat&quot;>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/styles.xml"
+            line="11"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.Theme_T4_AppBarOverlay` appears to be unused"
+        errorLine1="    &lt;style name=&quot;Theme.T4.AppBarOverlay&quot; parent=&quot;ThemeOverlay.Material3.Dark.ActionBar&quot; />"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/themes.xml"
+            line="32"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.Theme_T4_PopupOverlay` appears to be unused"
+        errorLine1="    &lt;style name=&quot;Theme.T4.PopupOverlay&quot; parent=&quot;ThemeOverlay.Material3.Light&quot; />"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/themes.xml"
+            line="35"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.style.ThemeOverlay_AppCompat_Light` appears to be unused"
+        errorLine1="    &lt;style name=&quot;ThemeOverlay.AppCompat.Light&quot; parent=&quot;Base.ThemeOverlay.AppCompat.Light&quot;>"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/themes.xml"
+            line="38"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="        &lt;Button"
+        errorLine2="         ~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="107"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="        &lt;Button"
+        errorLine2="         ~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="40"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="        &lt;Button"
+        errorLine2="         ~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="49"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="ButtonStyle"
+        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
+        errorLine1="        &lt;Button"
+        errorLine2="         ~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="58"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="Autofill"
+        message="Missing `autofillHints` attribute"
+        errorLine1="    &lt;EditText"
+        errorLine2="     ~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="36"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="Autofill"
+        message="Missing `autofillHints` attribute"
+        errorLine1="    &lt;EditText"
+        errorLine2="     ~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="60"
+            column="6"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation &apos;com.github.bumptech.glide:glide:4.16.0&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="45"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    kapt &apos;com.github.bumptech.glide:compiler:4.16.0&apos;"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="46"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        errorLine1="        dialogView.findViewById&lt;TextView>(R.id.deviceRssi).text = &quot;${device.rssi} dBm&quot;"
+        errorLine2="                                                                  ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/example/t4/BleScanFragment.kt"
+            line="398"
+            column="67"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        errorLine1="        dialogView.findViewById&lt;TextView>(R.id.deviceRssi).text = &quot;${device.rssi} dBm&quot;"
+        errorLine2="                                                                                 ~~~~">
+        <location
+            file="src/main/java/com/example/t4/BleScanFragment.kt"
+            line="398"
+            column="82"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;主页&quot;, should use `@string` resource"
+        errorLine1="            android:title=&quot;主页&quot; />"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/menu/bottom_nav_menu.xml"
+            line="6"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;蓝牙&quot;, should use `@string` resource"
+        errorLine1="            android:title=&quot;蓝牙&quot; />"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/menu/bottom_nav_menu.xml"
+            line="10"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;图像&quot;, should use `@string` resource"
+        errorLine1="            android:title=&quot;图像&quot; />"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/menu/bottom_nav_menu.xml"
+            line="14"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;调试&quot;, should use `@string` resource"
+        errorLine1="            android:title=&quot;调试&quot; />"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/menu/bottom_nav_menu.xml"
+            line="18"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;设备名称&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;设备名称&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="17"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;MAC 地址&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;MAC 地址&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="38"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;信号强度 (RSSI)&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;信号强度 (RSSI)&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="60"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;广播数据&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;广播数据&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="82"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;连接状态&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;连接状态&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="105"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;连接设备&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;连接设备&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_device_detail.xml"
+            line="127"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;接收数据：&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;接收数据：&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="31"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;接收的数据将显示在这里&quot;, should use `@string` resource"
+        errorLine1="        android:hint=&quot;接收的数据将显示在这里&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="44"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;发送数据：&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;发送数据：&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="55"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;在此输入要发送的数据&quot;, should use `@string` resource"
+        errorLine1="        android:hint=&quot;在此输入要发送的数据&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_debug.xml"
+            line="69"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;设备名称:&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;设备名称:&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_device.xml"
+            line="13"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;设备地址:&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;设备地址:&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_device.xml"
+            line="36"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;连接状态:&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;连接状态:&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_device.xml"
+            line="59"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;连接设备&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;连接设备&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_device.xml"
+            line="82"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;GATT 服务列表&quot;, should use `@string` resource"
+        errorLine1="        android:text=&quot;GATT 服务列表&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/fragment_ble_device.xml"
+            line="92"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;读取&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;读取&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="44"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;写入&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;写入&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="53"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="HardcodedText"
+        message="Hardcoded string &quot;通知&quot;, should use `@string` resource"
+        errorLine1="            android:text=&quot;通知&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/item_ble_characteristic.xml"
+            line="62"
+            column="13"/>
+    </issue>
+
+</issues>
