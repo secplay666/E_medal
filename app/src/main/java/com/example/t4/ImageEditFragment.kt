@@ -39,6 +39,8 @@ class ImageEditFragment : Fragment() {
     private var imageUri: Uri? = null
     private var currentThreshold = 128
     private var currentMode = EditMode.ORIGINAL
+    private val TARGET_WIDTH = 400
+    private val TARGET_HEIGHT = 300
     
     enum class EditMode {
         ORIGINAL,
@@ -160,16 +162,18 @@ class ImageEditFragment : Fragment() {
     
     private fun applyBinarize() {
         originalBitmap?.let {
-            // 使用ImageProcessor工具类进行二值化处理
-            currentBitmap = ImageProcessor.binarize(it, currentThreshold)
+            // 先缩放为 e-paper 期望的 400x300 再二值化
+            val scaled = Bitmap.createScaledBitmap(it, TARGET_WIDTH, TARGET_HEIGHT, true)
+            currentBitmap = ImageProcessor.binarize(scaled, currentThreshold)
             imagePreview.setImageBitmap(currentBitmap)
         }
     }
     
     private fun applyAdaptiveBinarize() {
         originalBitmap?.let {
-            // 使用ImageProcessor工具类进行自适应二值化处理
-            currentBitmap = ImageProcessor.adaptiveBinarize(it)
+            // 先缩放为 e-paper 期望的 400x300 再自适应二值化
+            val scaled = Bitmap.createScaledBitmap(it, TARGET_WIDTH, TARGET_HEIGHT, true)
+            currentBitmap = ImageProcessor.adaptiveBinarize(scaled)
             imagePreview.setImageBitmap(currentBitmap)
         }
     }

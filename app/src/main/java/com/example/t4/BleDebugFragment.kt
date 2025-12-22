@@ -49,6 +49,11 @@ class BleDebugFragment : Fragment() {
 
     // 用于UI更新的Handler
     private val handler = Handler(Looper.getMainLooper())
+    // 当前 MTU，默认 ATT MTU = 23（有效负载 20）
+    private var currentMtu: Int = 23
+    // 分片写队列与状态
+    private val writeQueue: Queue<ByteArray> = LinkedList()
+    private var isWriting = false
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -97,14 +102,16 @@ class BleDebugFragment : Fragment() {
             readCharacteristicData()
         }
 
-        // 发送调试指令
+        // 发送当前输入框中的指令
         sendButton.setOnClickListener {
-            val command = sendBoxEditText.text.toString()
-            if (command.isNotEmpty()) {
-                // 发送数据到写特征
-                writeCharacteristicData(command)
-                sendBoxEditText.text.clear()
+            val input = sendBoxEditText.text.toString()
+            if (input.isBlank()) {
+                Toast.makeText(requireContext(), "请输入要发送的内容", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            Log.d(TAG, "发送输入指令: $input")
+            appendToReceiveBox("尝试发送: $input")
+            writeCharacteristicData(input)
         }
 
         // 如果是E104设备，自动连接
@@ -200,6 +207,24 @@ class BleDebugFragment : Fragment() {
                     }
                 }
 
+                // MTU 变化回调（API >= 21）
+                override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+                    super.onMtuChanged(gatt, mtu, status)
+                    if (status == BluetoothGatt.GATT_SUCCESS) {
+                        currentMtu = mtu
+                        val payload = (mtu - 3).coerceAtLeast(0)
+                        // 添加了可供筛选的日志前缀
+                        Log.d(TAG, "[MTU_DEBUG] MTU 已变更: $mtu, 有效负载: $payload bytes")
+                        appendToReceiveBox("MTU 已变更: $mtu, 有效负载: $payload bytes")
+                    } else {
+                        // 添加了可供筛选的日志前缀
+                        Log.w(TAG, "[MTU_DEBUG] MTU 变更失败, status: $status")
+                        appendToReceiveBox("MTU 变更失败, status: $status")
+                    }
+                }
+
+                            // MTU 调试逻辑已移除 — 保持默认协商行为
+
                 @Deprecated("Deprecated in Java")
                 override fun onCharacteristicRead(
                         gatt: BluetoothGatt,
@@ -272,9 +297,20 @@ class BleDebugFragment : Fragment() {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         Log.d(TAG, "写入特征值成功")
                         appendToReceiveBox("发送成功")
+                        // 写入成功，继续发送下一片
+                        handler.post {
+                            isWriting = false
+                            sendNextFragment()
+                        }
                     } else {
                         Log.w(TAG, "写入特征值失败，状态: $status")
                         appendToReceiveBox("发送失败")
+                        // 出现写入失败，解锁并继续下一个片段或记录错误
+                        handler.post {
+                            isWriting = false
+                            appendToReceiveBox("写入失败，status=$status")
+                            sendNextFragment()
+                        }
                     }
                 }
 
@@ -458,19 +494,87 @@ class BleDebugFragment : Fragment() {
         }
 
         try {
-            // 将字符串转换为字节数组
+            // 将字符串转换为字节数组，并使用分片发送（添加 CRC16 校验）
             val bytes = data.toByteArray()
+            sendDataWithFragments(bytes)
 
-            // 写入特征值
-            targetWriteCharacteristic?.value = bytes
-            bluetoothGatt?.writeCharacteristic(targetWriteCharacteristic)
-
-            Log.d(TAG, "发送数据: $data")
-            appendToReceiveBox("发送: $data")
+            Log.d(TAG, "准备发送数据(已入队): $data")
+            appendToReceiveBox("准备发送(分片入队): $data")
         } catch (e: SecurityException) {
             Log.e(TAG, "写入特征值失败: ${e.message}")
             Toast.makeText(requireContext(), "缺少蓝牙连接权限", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // 将数据按 currentMtu-3 分片并加入队列，尾部附加 CRC16 (高字节在前)
+    private fun sendDataWithFragments(payload: ByteArray) {
+        // 计算 CRC16-CCITT (0x1021) 初值 0xFFFF，并在尾部追加 CRC（高字节先）和终止符 '\n'
+        val crc = crc16Ccitt(payload)
+        Log.d(TAG, "[FRAGMENT] 计算 CRC=0x${String.format("%04X", crc)}")
+        val withCrc = ByteArray(payload.size + 3)
+        System.arraycopy(payload, 0, withCrc, 0, payload.size)
+        withCrc[payload.size] = ((crc shr 8) and 0xFF).toByte()
+        withCrc[payload.size + 1] = (crc and 0xFF).toByte()
+        withCrc[payload.size + 2] = '\n'.code.toByte() // 终止符，便于 MCU 判帧
+
+        // 记录发送的最终字节流（十六进制），便于与 MCU 接收对比
+        try {
+            val hex = withCrc.joinToString(" ") { String.format("%02X", it) }
+            Log.d(TAG, "[FRAGMENT] outgoing: $hex")
+        } catch (e: Exception) {
+            Log.w(TAG, "[FRAGMENT] 无法打印 outgoing hex: ${e.message}")
+        }
+
+        val chunkSize = (currentMtu - 3).coerceAtLeast(1)
+        var offset = 0
+        synchronized(writeQueue) {
+            while (offset < withCrc.size) {
+                val end = (offset + chunkSize).coerceAtMost(withCrc.size)
+                val chunk = withCrc.copyOfRange(offset, end)
+                writeQueue.add(chunk)
+                offset = end
+            }
+        }
+
+        // 触发发送
+        handler.post { sendNextFragment() }
+    }
+
+    // 发送队列中的下一片（使用带应答写，确保可靠）
+    private fun sendNextFragment() {
+        if (isWriting) return
+        val next: ByteArray? = synchronized(writeQueue) { if (writeQueue.isEmpty()) null else writeQueue.poll() }
+        if (next == null) return
+
+        targetWriteCharacteristic?.let { char ->
+            try {
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT // 有响应写
+                char.value = next
+                val requested = bluetoothGatt?.writeCharacteristic(char)
+                Log.d(TAG, "[FRAGMENT] 写入片段 请求返回: $requested, 长度=${next.size}")
+                appendToReceiveBox("发送分片，长度=${next.size}, 请求=$requested")
+                isWriting = true
+            } catch (e: SecurityException) {
+                Log.e(TAG, "[FRAGMENT] 写入片段异常: ${e.message}")
+                appendToReceiveBox("写入分片异常: ${e.message}")
+                isWriting = false
+            }
+        } ?: run {
+            appendToReceiveBox("写特征为空，无法发送分片")
+        }
+    }
+
+    // CRC16-CCITT (poly 0x1021) implementation
+    private fun crc16Ccitt(data: ByteArray): Int {
+        var crc = 0xFFFF
+        for (b in data) {
+            crc = crc xor ((b.toInt() and 0xFF) shl 8)
+            for (i in 0 until 8) {
+                crc = if ((crc and 0x8000) != 0) ((crc shl 1) xor 0x1021) else (crc shl 1)
+                crc = crc and 0xFFFF
+            }
+        }
+        return crc and 0xFFFF
     }
 
     private fun appendToReceiveBox(message: String) {
