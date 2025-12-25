@@ -134,13 +134,46 @@ class ImageEditFragment : Fragment() {
         
         // 下载到下位机按钮
         view.findViewById<ImageButton>(R.id.btnDownload).setOnClickListener {
-            // 发送当前二值化图片的前 248 字节到下位机
+            // 按新协议：发送 5000 字节图像数据（分为 248 字节页面帧，并补齐不足），随后发送 DISPLAY\r\n
             if (currentBitmap == null) {
                 Toast.makeText(requireContext(), "当前无图片可发送", Toast.LENGTH_SHORT).show()
-            } else {
-                BleConnectionManager.writeImageFirst248(requireContext()) { currentBitmap }
-                Toast.makeText(requireContext(), "已请求发送图片前 248 字节", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            // 获取二值化后的字节流
+            val imageBytes = ImageProcessor.bitmapToMonochromeBytes(currentBitmap!!)
+
+            // 目标发送长度（用户要求）
+            val totalToSend = 5000
+
+            // 准备固定长度数据：不足部分用 0xFF 填充
+            val dataToSend = ByteArray(totalToSend)
+            val copyLen = minOf(imageBytes.size, totalToSend)
+            System.arraycopy(imageBytes, 0, dataToSend, 0, copyLen)
+            if (copyLen < totalToSend) {
+                for (i in copyLen until totalToSend) dataToSend[i] = 0xFF.toByte()
+            }
+
+            val PAGE_SIZE = 248
+            val pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
+
+            // 逐页打包为 248 字节负载，交由 BleConnectionManager 添加 CRC 并分片发送
+            for (p in 0 until pages) {
+                val offset = p * PAGE_SIZE
+                val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
+                val pagePayload = ByteArray(PAGE_SIZE)
+                // 先填充 0xFF
+                for (i in pagePayload.indices) pagePayload[i] = 0xFF.toByte()
+                System.arraycopy(dataToSend, offset, pagePayload, 0, end - offset)
+                // 取反每个像素位（0/1 反转），以匹配 MCU 显示方向
+                for (i in pagePayload.indices) pagePayload[i] = (pagePayload[i].toInt() xor 0xFF).toByte()
+                BleConnectionManager.sendDataWithFragments(pagePayload)
+            }
+
+            // 发送 DISPLAY 控制命令（manager 会为其附加 CRC+\n）
+            BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
+
+            Toast.makeText(requireContext(), "已请求发送 5000 字节并触发 DISPLAY", Toast.LENGTH_SHORT).show()
         }
     }
     

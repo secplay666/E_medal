@@ -167,7 +167,8 @@ object BleConnectionManager {
 
         val sendLen = minOf(248, imageBytes.size)
         val payload = imageBytes.sliceArray(0 until sendLen)
-        // 使用分片/队列发送逻辑
+        // 反转位映射以匹配 MCU（黑白反向），然后使用分片/队列发送逻辑
+        for (i in payload.indices) payload[i] = (payload[i].toInt() xor 0xFF).toByte()
         sendDataWithFragments(payload)
     }
 }
