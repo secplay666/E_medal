@@ -155,5 +155,32 @@ class ImageProcessor {
             
             return (totalGray / totalPixels).toInt()
         }
+
+        /**
+         * 将二值化后的位图转换为每位表示一个像素的单色字节数组（每字节 8 像素，按行优先，最高位为左侧像素）
+         */
+        fun bitmapToMonochromeBytes(bitmap: Bitmap): ByteArray {
+            val width = bitmap.width
+            val height = bitmap.height
+            val totalBits = width * height
+            val totalBytes = (totalBits + 7) / 8
+            val pixels = IntArray(width * height)
+            bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+
+            val out = ByteArray(totalBytes)
+            var bitIndex = 0
+
+            for (i in pixels.indices) {
+                val px = pixels[i]
+                // 认为黑色为 1，白色为 0
+                val bit = if (px == android.graphics.Color.BLACK) 1 else 0
+                val byteIndex = bitIndex / 8
+                val shift = 7 - (bitIndex % 8)
+                out[byteIndex] = (out[byteIndex].toInt() or (bit shl shift)).toByte()
+                bitIndex++
+            }
+
+            return out
+        }
     }
 }

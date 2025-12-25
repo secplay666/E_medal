@@ -19,6 +19,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.t4.ble.BleConnectionManager
 import androidx.navigation.fragment.findNavController
 import java.io.File
 import java.io.FileOutputStream
@@ -133,8 +134,13 @@ class ImageEditFragment : Fragment() {
         
         // 下载到下位机按钮
         view.findViewById<ImageButton>(R.id.btnDownload).setOnClickListener {
-            // 在这里实现下载到下位机的逻辑
-            Toast.makeText(requireContext(), "下载到下位机功能待实现", Toast.LENGTH_SHORT).show()
+            // 发送当前二值化图片的前 248 字节到下位机
+            if (currentBitmap == null) {
+                Toast.makeText(requireContext(), "当前无图片可发送", Toast.LENGTH_SHORT).show()
+            } else {
+                BleConnectionManager.writeImageFirst248(requireContext()) { currentBitmap }
+                Toast.makeText(requireContext(), "已请求发送图片前 248 字节", Toast.LENGTH_SHORT).show()
+            }
         }
     }
     
