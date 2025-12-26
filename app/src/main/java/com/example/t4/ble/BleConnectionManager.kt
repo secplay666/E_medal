@@ -71,26 +71,37 @@ object BleConnectionManager {
             Log.w(TAG, "sendDataWithFragments: no gatt or char")
             return
         }
+        // New frame format: [MAGIC(2)][LEN(2)][PAYLOAD(len)][CRC(2)]
+        val magic = byteArrayOf(0xAB.toByte(), 0xCD.toByte())
 
+
+        // New simple frame: [MAGIC(2)][LEN(2)][PAYLOAD(len)][CRC(2)]
         val crc = crc16Ccitt(payload)
-        Log.d(TAG, "[MANAGER FRAGMENT] 计算 CRC=0x${String.format("%04X", crc)}")
-        val withCrc = ByteArray(payload.size + 3)
-        System.arraycopy(payload, 0, withCrc, 0, payload.size)
-        withCrc[payload.size] = ((crc shr 8) and 0xFF).toByte()
-        withCrc[payload.size + 1] = (crc and 0xFF).toByte()
-        withCrc[payload.size + 2] = '\n'.code.toByte()
+        val len = payload.size
+        val lenHi = ((len shr 8) and 0xFF).toByte()
+        val lenLo = (len and 0xFF).toByte()
+
+        val frame = ByteArray(2 + 2 + len + 2)
+        frame[0] = magic[0]
+        frame[1] = magic[1]
+        frame[2] = lenHi
+        frame[3] = lenLo
+        System.arraycopy(payload, 0, frame, 4, len)
+        // CRC on payload (hi, lo)
+        frame[4 + len] = ((crc shr 8) and 0xFF).toByte()
+        frame[4 + len + 1] = (crc and 0xFF).toByte()
 
         try {
-            val hex = withCrc.joinToString(" ") { String.format("%02X", it) }
-            Log.d(TAG, "[MANAGER FRAGMENT] outgoing: $hex")
+            val hex = frame.joinToString(" ") { String.format("%02X", it) }
+            Log.d(TAG, "[MANAGER FRAGMENT] outgoing frame: $hex")
         } catch (e: Exception) { /* ignore */ }
 
         val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) (currentMtu - 3) else 20).coerceAtLeast(1)
         var offset = 0
         synchronized(writeQueue) {
-            while (offset < withCrc.size) {
-                val end = (offset + chunkSize).coerceAtMost(withCrc.size)
-                val chunk = withCrc.copyOfRange(offset, end)
+            while (offset < frame.size) {
+                val end = (offset + chunkSize).coerceAtMost(frame.size)
+                val chunk = frame.copyOfRange(offset, end)
                 writeQueue.add(chunk)
                 offset = end
             }
@@ -149,6 +160,11 @@ object BleConnectionManager {
         }
         return crc and 0xFFFF
     }
+
+    // PackBits compression (simple, well-known):
+    // - If a run of >=3 identical bytes is found, encode as header = (1 - runLen) (signed), then one byte value
+    // - Otherwise output literal chunks with header = (len - 1) where 0 <= header <= 127 followed by len bytes
+    // Compression removed: frames are sent raw (MAGIC+LEN+PAYLOAD+CRC)
 
     /**
      * 发送二值化位图的前 248 字节到 MCU（直接写入目标写特征）

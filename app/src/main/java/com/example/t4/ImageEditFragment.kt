@@ -140,40 +140,30 @@ class ImageEditFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // 获取二值化后的字节流
+            // 获取二值化后的字节流（整个图像）
             val imageBytes = ImageProcessor.bitmapToMonochromeBytes(currentBitmap!!)
 
-            // 目标发送长度（用户要求）
-            val totalToSend = 5000
-
-            // 准备固定长度数据：不足部分用 0xFF 填充
-            val dataToSend = ByteArray(totalToSend)
-            val copyLen = minOf(imageBytes.size, totalToSend)
-            System.arraycopy(imageBytes, 0, dataToSend, 0, copyLen)
-            if (copyLen < totalToSend) {
-                for (i in copyLen until totalToSend) dataToSend[i] = 0xFF.toByte()
-            }
-
             val PAGE_SIZE = 248
+            val totalToSend = imageBytes.size
             val pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
 
-            // 逐页打包为 248 字节负载，交由 BleConnectionManager 添加 CRC 并分片发送
+            // 逐页发送全部图像数据：每页为 248 字节，不足处用 0xFF 补齐，随后逐字节取反
             for (p in 0 until pages) {
                 val offset = p * PAGE_SIZE
                 val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
                 val pagePayload = ByteArray(PAGE_SIZE)
                 // 先填充 0xFF
-                for (i in pagePayload.indices) pagePayload[i] = 0xFF.toByte()
-                System.arraycopy(dataToSend, offset, pagePayload, 0, end - offset)
-                // 取反每个像素位（0/1 反转），以匹配 MCU 显示方向
-                for (i in pagePayload.indices) pagePayload[i] = (pagePayload[i].toInt() xor 0xFF).toByte()
+                for (j in pagePayload.indices) pagePayload[j] = 0xFF.toByte()
+                System.arraycopy(imageBytes, offset, pagePayload, 0, end - offset)
+                // 反转每个字节（0x00 <-> 0xFF），以匹配 MCU 的黑白约定
+                for (j in pagePayload.indices) pagePayload[j] = (pagePayload[j].toInt() xor 0xFF).toByte()
                 BleConnectionManager.sendDataWithFragments(pagePayload)
             }
 
-            // 发送 DISPLAY 控制命令（manager 会为其附加 CRC+\n）
+            // 发送 DISPLAY 控制命令（manager 会封装为头+len+crc 的控制帧）
             BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
 
-            Toast.makeText(requireContext(), "已请求发送 5000 字节并触发 DISPLAY", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "已请求发送整张图像，共 $pages 页，并触发 DISPLAY", Toast.LENGTH_SHORT).show()
         }
     }
     
