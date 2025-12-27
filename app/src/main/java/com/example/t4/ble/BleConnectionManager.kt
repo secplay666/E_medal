@@ -62,48 +62,75 @@ object BleConnectionManager {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * 将数据按 currentMtu-3 分片并加入队列，尾部附加 CRC16 (高字节在前)，并开始发送
+     * 将数据按 currentMtu-3 分片并加入队列，支持可选的RLE压缩，并开始发送
+     * @param payload 有效载荷数据
+     * @param enableCompression 是否启用压缩（仅对248字节页数据有效）
      */
-    fun sendDataWithFragments(payload: ByteArray) {
+    fun sendDataWithFragments(payload: ByteArray, enableCompression: Boolean = true) {
         val gatt = bluetoothGatt
         val char = targetWriteCharacteristic
         if (gatt == null || char == null) {
             Log.w(TAG, "sendDataWithFragments: no gatt or char")
             return
         }
-        // New frame format: [MAGIC(2)][LEN(2)][PAYLOAD(len)][CRC(2)]
+
+        // 只对248字节的页数据启用压缩
+        val shouldCompress = enableCompression && payload.size == 248
+        val processedPayload = if (shouldCompress) {
+            compressPageRLE(payload)
+        } else {
+            payload
+        }
+
+        // 计算压缩效果
+        if (shouldCompress) {
+            val ratio = (processedPayload.size.toFloat() / payload.size * 100).toInt()
+            Log.d(TAG, "Page compressed: ${payload.size}B -> ${processedPayload.size}B ($ratio%)")
+        }
+
+        // New frame format: [MAGIC(2)][FLAGS(1)][LEN(2)][PAYLOAD(len)][CRC(2)]
         val magic = byteArrayOf(0xAB.toByte(), 0xCD.toByte())
+        val flags: Byte = if (shouldCompress) 0x01 else 0x00
 
-
-        // New simple frame: [MAGIC(2)][LEN(2)][PAYLOAD(len)][CRC(2)]
-        val crc = crc16Ccitt(payload)
-        val len = payload.size
+        // CRC 对处理后的payload计算
+        val crc = crc16Ccitt(processedPayload)
+        val len = processedPayload.size
         val lenHi = ((len shr 8) and 0xFF).toByte()
         val lenLo = (len and 0xFF).toByte()
 
-        val frame = ByteArray(2 + 2 + len + 2)
-        frame[0] = magic[0]
-        frame[1] = magic[1]
-        frame[2] = lenHi
-        frame[3] = lenLo
-        System.arraycopy(payload, 0, frame, 4, len)
-        // CRC on payload (hi, lo)
-        frame[4 + len] = ((crc shr 8) and 0xFF).toByte()
-        frame[4 + len + 1] = (crc and 0xFF).toByte()
+        // 帧结构：MAGIC(2) + FLAGS(1) + LEN(2) + PAYLOAD(len) + CRC(2)
+        val frame = ByteArray(2 + 1 + 2 + len + 2)
+        var offset = 0
+
+        frame[offset++] = magic[0]
+        frame[offset++] = magic[1]
+        frame[offset++] = flags
+        frame[offset++] = lenHi
+        frame[offset++] = lenLo
+        System.arraycopy(processedPayload, 0, frame, offset, len)
+        offset += len
+        frame[offset++] = ((crc shr 8) and 0xFF).toByte()
+        frame[offset++] = (crc and 0xFF).toByte()
 
         try {
-            val hex = frame.joinToString(" ") { String.format("%02X", it) }
-            Log.d(TAG, "[MANAGER FRAGMENT] outgoing frame: $hex")
+            val hex = if (frame.size <= 32) {
+                frame.joinToString(" ") { String.format("%02X", it) }
+            } else {
+                frame.take(32).joinToString(" ") { String.format("%02X", it) } + " ..."
+            }
+            Log.d(TAG, "[MANAGER] TX frame: flags=0x%02X len=%d total=%d [%s]".format(flags, len, frame.size, hex))
         } catch (e: Exception) { /* ignore */ }
 
-        val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) (currentMtu - 3) else 20).coerceAtLeast(1)
-        var offset = 0
+        // 分片发送
+        val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                          (currentMtu - 3) else 20).coerceAtLeast(1)
+        var chunkOffset = 0
         synchronized(writeQueue) {
-            while (offset < frame.size) {
-                val end = (offset + chunkSize).coerceAtMost(frame.size)
-                val chunk = frame.copyOfRange(offset, end)
+            while (chunkOffset < frame.size) {
+                val end = (chunkOffset + chunkSize).coerceAtMost(frame.size)
+                val chunk = frame.copyOfRange(chunkOffset, end)
                 writeQueue.add(chunk)
-                offset = end
+                chunkOffset = end
             }
         }
 
@@ -159,6 +186,60 @@ object BleConnectionManager {
             }
         }
         return crc and 0xFFFF
+    }
+
+    /**
+     * RLE压缩：适用于单页数据（248字节）
+     * 格式：[count][value] 循环
+     * - count >= 128: 重复模式，实际重复次数 = (257 - count)，后跟1字节重复值
+     * - count < 128: 字面量模式，后跟count个原始字节
+     */
+    private fun compressPageRLE(data: ByteArray): ByteArray {
+        val out = mutableListOf<Byte>()
+        var i = 0
+
+        while (i < data.size) {
+            // 检查重复字节
+            var runLength = 1
+            while (i + runLength < data.size
+                   && data[i] == data[i + runLength]
+                   && runLength < 129) {
+                runLength++
+            }
+
+            if (runLength >= 3) {
+                // 重复模式：值得压缩（3字节以上重复）
+                out.add((257 - runLength).toByte())
+                out.add(data[i])
+                i += runLength
+            } else {
+                // 字面量模式：收集不重复的字节
+                val literalStart = i
+                var literalLen = 0
+
+                while (i < data.size && literalLen < 127) {
+                    var nextRun = 1
+                    while (i + nextRun < data.size
+                           && data[i] == data[i + nextRun]
+                           && nextRun < 3) {
+                        nextRun++
+                    }
+
+                    if (nextRun >= 3) break // 发现3+重复，停止收集
+
+                    i++
+                    literalLen++
+                }
+
+                // 输出字面量块
+                out.add(literalLen.toByte())
+                for (j in literalStart until literalStart + literalLen) {
+                    out.add(data[j])
+                }
+            }
+        }
+
+        return out.toByteArray()
     }
 
     // PackBits compression (simple, well-known):
