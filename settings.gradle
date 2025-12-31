@@ -8,6 +8,12 @@ pluginManagement {
             }
         }
         mavenCentral()
+        // 某些旧库还托管在 jcenter，或可以通过 jitpack 获取，先加上以提高兼容性
+        jcenter()
+        maven { url 'https://jitpack.io' }
+        // 国内 Maven 镜像（优先）
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://mirrors.tuna.tsinghua.edu.cn/maven' }
         gradlePluginPortal()
     }
 }
@@ -16,6 +22,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+        // 国内镜像，放在后面以便优先查找国内源
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://mirrors.tuna.tsinghua.edu.cn/maven' }
     }
 }
 

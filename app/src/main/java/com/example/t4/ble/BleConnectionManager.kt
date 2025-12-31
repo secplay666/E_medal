@@ -66,7 +66,7 @@ object BleConnectionManager {
      * @param payload 有效载荷数据
      * @param enableCompression 是否启用压缩（仅对248字节页数据有效）
      */
-    fun sendDataWithFragments(payload: ByteArray, enableCompression: Boolean = true) {
+    fun sendDataWithFragments(payload: ByteArray, enableCompression: Boolean = true, setColorBit: Boolean = false, isRed: Boolean = false) {
         val gatt = bluetoothGatt
         val char = targetWriteCharacteristic
         if (gatt == null || char == null) {
@@ -76,13 +76,19 @@ object BleConnectionManager {
 
         // 只对248字节的页数据启用压缩
         val shouldCompress = enableCompression && payload.size == 248
-        val processedPayload = if (shouldCompress) {
-            compressPageRLE(payload)
+
+        // 如果需要在安卓端对 RED 通道取反，必须在压缩前对原始数据取反，
+        // 否则会破坏 RLE 格式导致解压失败。
+        val payloadForCompression: ByteArray = if (setColorBit && isRed) {
+            val inv = payload.copyOf()
+            for (i in inv.indices) inv[i] = (inv[i].toInt() xor 0xFF).toByte()
+            inv
         } else {
             payload
         }
 
-        // 计算压缩效果
+        val processedPayload = if (shouldCompress) compressPageRLE(payloadForCompression) else payloadForCompression
+
         if (shouldCompress) {
             val ratio = (processedPayload.size.toFloat() / payload.size * 100).toInt()
             Log.d(TAG, "Page compressed: ${payload.size}B -> ${processedPayload.size}B ($ratio%)")
@@ -90,9 +96,11 @@ object BleConnectionManager {
 
         // New frame format: [MAGIC(2)][FLAGS(1)][LEN(2)][PAYLOAD(len)][CRC(2)]
         val magic = byteArrayOf(0xAB.toByte(), 0xCD.toByte())
-        val flags: Byte = if (shouldCompress) 0x01 else 0x00
+        var flags: Int = if (shouldCompress) 0x01 else 0x00
+        if (setColorBit && isRed) flags = flags or 0x02
+        val flagsByte: Byte = (flags and 0xFF).toByte()
 
-        // CRC 对处理后的payload计算
+        // CRC 对处理后的 payload 计算（已在压缩前/未压缩时对原始数据做了取反）
         val crc = crc16Ccitt(processedPayload)
         val len = processedPayload.size
         val lenHi = ((len shr 8) and 0xFF).toByte()
@@ -104,7 +112,7 @@ object BleConnectionManager {
 
         frame[offset++] = magic[0]
         frame[offset++] = magic[1]
-        frame[offset++] = flags
+        frame[offset++] = flagsByte
         frame[offset++] = lenHi
         frame[offset++] = lenLo
         System.arraycopy(processedPayload, 0, frame, offset, len)
@@ -113,17 +121,13 @@ object BleConnectionManager {
         frame[offset++] = (crc and 0xFF).toByte()
 
         try {
-            val hex = if (frame.size <= 32) {
-                frame.joinToString(" ") { String.format("%02X", it) }
-            } else {
-                frame.take(32).joinToString(" ") { String.format("%02X", it) } + " ..."
-            }
+            val hex = if (frame.size <= 32) frame.joinToString(" ") { String.format("%02X", it) }
+                      else frame.take(32).joinToString(" ") { String.format("%02X", it) } + " ..."
             Log.d(TAG, "[MANAGER] TX frame: flags=0x%02X len=%d total=%d [%s]".format(flags, len, frame.size, hex))
         } catch (e: Exception) { /* ignore */ }
 
         // 分片发送
-        val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                          (currentMtu - 3) else 20).coerceAtLeast(1)
+        val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) (currentMtu - 3) else 20).coerceAtLeast(1)
         var chunkOffset = 0
         synchronized(writeQueue) {
             while (chunkOffset < frame.size) {
