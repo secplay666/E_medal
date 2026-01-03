@@ -22,6 +22,7 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.example.t4.ble.BleConnectionManager
 import androidx.navigation.fragment.findNavController
@@ -49,6 +50,7 @@ class ImageEditFragment : Fragment() {
     private var currentMode = EditMode.ORIGINAL
     private val TARGET_WIDTH = 400
     private val TARGET_HEIGHT = 300
+    private var selectedSlot = 1
     
     private var cropConfirmed = false
     
@@ -213,36 +215,58 @@ class ImageEditFragment : Fragment() {
             }
         }
 
+        // 槽位选择改为点击下载时弹出对话框选择，以避免依赖布局中可能丢失的 Spinner id
+
         view.findViewById<ImageButton>(R.id.btnDownload).setOnClickListener {
             if (currentBitmap == null) {
                 Toast.makeText(requireContext(), "当前无图片可发送", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
-            val isRedSelected = colorToggleBtn?.tag == "red"
-
-            // Reset pages on MCU to ensure we start from page 0
-            BleConnectionManager.sendDataWithFragments("RESET_PAGES".toByteArray())
-
-            val imageBytes = ImageProcessor.bitmapToMonochromeBytes(currentBitmap!!)
-            val PAGE_SIZE = 248
-            val totalToSend = imageBytes.size
-            val pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
-
-            for (p in 0 until pages) {
-                val offset = p * PAGE_SIZE
-                val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
-                val pagePayload = ByteArray(PAGE_SIZE)
-                for (j in pagePayload.indices) pagePayload[j] = 0xFF.toByte()
-                System.arraycopy(imageBytes, offset, pagePayload, 0, end - offset)
-                for (j in pagePayload.indices) pagePayload[j] = (pagePayload[j].toInt() xor 0xFF).toByte()
-                BleConnectionManager.sendDataWithFragments(pagePayload, enableCompression = true, setColorBit = isRedSelected, isRed = isRedSelected)
-            }
-
-            BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
-
-            Toast.makeText(requireContext(), "已请求发送整张图像，共 $pages 页，并触发 DISPLAY", Toast.LENGTH_SHORT).show()
+            // 先弹出槽位选择对话框
+            showSlotSelectionDialog(isRed = colorToggleBtn?.tag == "red")
         }
+    }
+
+    private fun showSlotSelectionDialog(isRed: Boolean) {
+        val items = Array(8) { i -> "槽位 ${i + 1}" }
+        var choice = selectedSlot - 1
+        AlertDialog.Builder(requireContext())
+            .setTitle("选择图片槽位")
+            .setSingleChoiceItems(items, choice) { _, which -> choice = which }
+            .setPositiveButton("发送") { _, _ ->
+                selectedSlot = choice + 1
+                Toast.makeText(requireContext(), "已选槽位 $selectedSlot", Toast.LENGTH_SHORT).show()
+                sendImageToMcu(isRed)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun sendImageToMcu(isRedSelected: Boolean) {
+        // 在发送图像前告知 MCU 要写入的槽位，再重置页计数
+        try {
+            BleConnectionManager.sendDataWithFragments("SET_SLOT:$selectedSlot".toByteArray())
+        } catch (_: Exception) {}
+        BleConnectionManager.sendDataWithFragments("RESET_PAGES".toByteArray())
+
+        val imageBytes = ImageProcessor.bitmapToMonochromeBytes(currentBitmap!!)
+        val PAGE_SIZE = 248
+        val totalToSend = imageBytes.size
+        val pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
+
+        for (p in 0 until pages) {
+            val offset = p * PAGE_SIZE
+            val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
+            val pagePayload = ByteArray(PAGE_SIZE)
+            for (j in pagePayload.indices) pagePayload[j] = 0xFF.toByte()
+            System.arraycopy(imageBytes, offset, pagePayload, 0, end - offset)
+            for (j in pagePayload.indices) pagePayload[j] = (pagePayload[j].toInt() xor 0xFF).toByte()
+            BleConnectionManager.sendDataWithFragments(pagePayload, enableCompression = true, setColorBit = isRedSelected, isRed = isRedSelected)
+        }
+
+        BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
+
+        Toast.makeText(requireContext(), "已请求发送整张图像，共 $pages 页，槽位 $selectedSlot，并触发 DISPLAY", Toast.LENGTH_SHORT).show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
