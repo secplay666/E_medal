@@ -176,6 +176,14 @@ class BleDebugFragment : Fragment() {
                         Log.d(TAG, "已连接到 GATT 服务器")
                         appendToReceiveBox("已连接到设备")
 
+                        // 请求更大的 MTU 以提高传输速度
+                        try {
+                            Log.d(TAG, "[MTU_DEBUG] 请求 MTU 247...")
+                            gatt.requestMtu(247)
+                        } catch (e: SecurityException) {
+                            Log.e(TAG, "请求 MTU 失败: ${e.message}")
+                        }
+
                         // 开始发现服务
                         try {
                             Log.d(TAG, "开始发现服务")
