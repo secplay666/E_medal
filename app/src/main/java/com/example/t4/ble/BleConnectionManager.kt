@@ -62,6 +62,74 @@ object BleConnectionManager {
         currentMtu = mtu
         Log.d(TAG, "setMtu: $mtu")
     }
+    
+    fun getMtu(): Int = currentMtu
+
+    /**
+     * MTU 测试：逐步测试不同大小，找出最大可发送字节数
+     */
+    fun testMtuSendRaw(size: Int) {
+        val gatt = bluetoothGatt
+        val char = targetWriteCharacteristic
+        if (gatt == null || char == null) {
+            Log.e(TAG, "[MTU_TEST] No gatt or characteristic!")
+            return
+        }
+        
+        Log.d(TAG, "[MTU_TEST] ========================================")
+        Log.d(TAG, "[MTU_TEST] Current MTU setting: $currentMtu")
+        Log.d(TAG, "[MTU_TEST] Testing different sizes...")
+        Log.d(TAG, "[MTU_TEST] ========================================")
+        
+        // 测试不同大小: 20, 50, 100, 150, 200
+        val testSizes = listOf(20, 50, 100, 150, 200)
+        
+        for (testSize in testSizes) {
+            val testData = ByteArray(testSize) { i -> (i and 0xFF).toByte() }
+            
+            try {
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                char.value = testData
+                val result = gatt.writeCharacteristic(char)
+                Log.d(TAG, "[MTU_TEST] Size $testSize bytes: request=${if (result) "OK" else "FAIL"}")
+                
+                if (result) {
+                    // 等待一下让回调执行
+                    Thread.sleep(500)
+                } else {
+                    Log.e(TAG, "[MTU_TEST] Size $testSize FAILED to send!")
+                    break
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "[MTU_TEST] Size $testSize Exception: ${e.message}")
+                break
+            }
+        }
+    }
+    
+    /**
+     * 发送固定 20 字节测试数据（几乎所有 BLE 都支持）
+     */
+    fun testMtuSend20() {
+        val gatt = bluetoothGatt
+        val char = targetWriteCharacteristic
+        if (gatt == null || char == null) {
+            Log.e(TAG, "[MTU_TEST] No gatt or characteristic!")
+            return
+        }
+        
+        val testData = ByteArray(20) { i -> (i and 0xFF).toByte() }
+        Log.d(TAG, "[MTU_TEST] Sending 20 bytes: ${testData.joinToString(" ") { String.format("%02X", it) }}")
+        
+        try {
+            char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            char.value = testData
+            val result = gatt.writeCharacteristic(char)
+            Log.d(TAG, "[MTU_TEST] writeCharacteristic returned: $result")
+        } catch (e: SecurityException) {
+            Log.e(TAG, "[MTU_TEST] SecurityException: ${e.message}")
+        }
+    }
 
     // 发送队列
     private val writeQueue: Queue<ByteArray> = LinkedList()
@@ -163,6 +231,9 @@ object BleConnectionManager {
         mainHandler.post { sendNextFragment() }
     }
 
+    // 标记是否使用 NO_RESPONSE 模式（不等待 GATT 回调）
+    private var useNoResponse = true  // 设为 true 启用快速模式
+
     private fun sendNextFragment() {
         if (isWriting) return
         val next: ByteArray? = synchronized(writeQueue) { if (writeQueue.isEmpty()) null else writeQueue.poll() }
@@ -176,12 +247,43 @@ object BleConnectionManager {
         }
 
         try {
-            char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            if (useNoResponse) {
+                // NO_RESPONSE 模式：不等待 ACK，速度更快
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            } else {
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            }
             char.value = next
             val requested = gatt.writeCharacteristic(char)
             Log.d(TAG, "[MANAGER FRAGMENT] 写入片段 请求返回: $requested, 长度=${next.size}")
             if (requested) {
                 isWriting = true
+                
+                if (useNoResponse) {
+                    // NO_RESPONSE 模式：立即更新进度并发送下一包
+                    isWriting = false
+                    synchronized(writeQueue) {
+                        if (isTransferring && totalFramesToSend > 0) {
+                            framesSent++
+                            // 每 10 包更新一次 UI，减少 UI 开销
+                            if (framesSent % 10 == 0 || writeQueue.isEmpty()) {
+                                val progress = (framesSent * 100) / totalFramesToSend
+                                transferProgress.postValue("已发送: $framesSent / $totalFramesToSend (${progress}%)")
+                            }
+                            
+                            if (framesSent >= totalFramesToSend && writeQueue.isEmpty()) {
+                                totalFramesToSend = 0
+                                framesSent = 0
+                                isTransferring = false
+                                transferProgress.postValue("")
+                                Log.d(TAG, "Transfer complete!")
+                            }
+                        }
+                    }
+                    // 立即发送下一包，不等待
+                    mainHandler.post { sendNextFragment() }
+                }
+                // DEFAULT 模式会等待 onCharacteristicWrite 回调
             } else {
                 // 放回队列并稍后重试
                 synchronized(writeQueue) { writeQueue.add(next) }
@@ -192,8 +294,13 @@ object BleConnectionManager {
         }
     }
 
-    // 由 GATT 回调在 write 完成后调用
+    // 由 GATT 回调在 write 完成后调用（仅 DEFAULT 模式使用）
     fun onCharacteristicWrite(status: Int) {
+        if (useNoResponse) {
+            // NO_RESPONSE 模式下忽略 GATT 回调，避免重复计数
+            return
+        }
+        
         isWriting = false
         Log.d(TAG, "onCharacteristicWrite status=$status")
         // 更新进度（非阻塞）

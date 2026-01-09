@@ -111,6 +111,17 @@ class BleDebugFragment : Fragment() {
             appendToReceiveBox("尝试发送: $input")
             writeCharacteristicData(input)
         }
+        
+        // MTU 测试按钮 - 先发送 20 字节测试
+        view.findViewById<Button>(R.id.btnTestMtu)?.setOnClickListener {
+            Log.d(TAG, "[MTU_TEST] Button clicked")
+            appendToReceiveBox("========== MTU 测试 ==========")
+            appendToReceiveBox("当前 MTU 设置: ${BleConnectionManager.getMtu()}")
+            appendToReceiveBox("发送 20 字节测试数据...")
+            appendToReceiveBox("请查看 MCU 串口输出")
+            appendToReceiveBox("================================")
+            BleConnectionManager.testMtuSend20()
+        }
 
         // 如果是E104设备，自动连接
         if (isE104Device && deviceAddress != null) {
