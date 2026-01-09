@@ -40,6 +40,9 @@ class ImageEditFragment : Fragment() {
     private lateinit var thresholdControlLayout: LinearLayout
     private lateinit var thresholdSeekBar: SeekBar
     private lateinit var thresholdValueText: TextView
+    private lateinit var redThresholdControlLayout: LinearLayout
+    private lateinit var redThresholdSeekBar: SeekBar
+    private lateinit var redThresholdValueText: TextView
     private lateinit var btnConfirmCrop: android.widget.Button
     private var staticPreview: ImageView? = null
     
@@ -47,6 +50,7 @@ class ImageEditFragment : Fragment() {
     private var currentBitmap: Bitmap? = null
     private var imageUri: Uri? = null
     private var currentThreshold = 128
+    private var currentRedThreshold = 50
     private var currentMode = EditMode.ORIGINAL
     private val TARGET_WIDTH = 400
     private val TARGET_HEIGHT = 300
@@ -57,7 +61,7 @@ class ImageEditFragment : Fragment() {
     enum class EditMode {
         ORIGINAL,
         BINARIZE,
-        ADAPTIVE_BINARIZE
+        DETECT_RED
     }
 
     override fun onCreateView(
@@ -80,6 +84,9 @@ class ImageEditFragment : Fragment() {
         thresholdControlLayout = view.findViewById(R.id.thresholdControlLayout)
         thresholdSeekBar = view.findViewById(R.id.thresholdSeekBar)
         thresholdValueText = view.findViewById(R.id.thresholdValueText)
+        redThresholdControlLayout = view.findViewById(R.id.redThresholdControlLayout)
+        redThresholdSeekBar = view.findViewById(R.id.redThresholdSeekBar)
+        redThresholdValueText = view.findViewById(R.id.redThresholdValueText)
         
         // 检查工具面板
         val toolPanel = view.findViewById<View>(R.id.toolPanel)
@@ -106,6 +113,23 @@ class ImageEditFragment : Fragment() {
                 thresholdValueText.text = progress.toString()
                 if (currentMode == EditMode.BINARIZE) {
                     applyBinarize()
+                } else if (currentMode == EditMode.DETECT_RED) {
+                    applyDetectRed()
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+        
+        // 设置红色敏感度滑块监听器（实时应用红色检测）
+        redThresholdSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                currentRedThreshold = progress
+                redThresholdValueText.text = progress.toString()
+                if (currentMode == EditMode.DETECT_RED) {
+                    applyDetectRed()
                 }
             }
 
@@ -118,10 +142,41 @@ class ImageEditFragment : Fragment() {
         // 添加日志来检查工具面板的初始化
         Log.d("ImageEditFragment", "初始化界面元素")
         
+        // 观察传输进度（异步，不阻塞UI主线程）
+        var statusText = view.findViewById<TextView>(R.id.statusText)
+        Log.d("ImageEditFragment", "statusText from layout found: ${statusText != null}")
+        
+        // 如果布局中找不到，动态创建一个
+        if (statusText == null) {
+            Log.w("ImageEditFragment", "Creating dynamic statusText TextView")
+            statusText = TextView(requireContext()).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 60)
+                setBackgroundColor(android.graphics.Color.parseColor("#FF6B6B"))
+                setTextColor(android.graphics.Color.WHITE)
+                textSize = 12f
+                setPadding(16, 6, 16, 6)
+                visibility = View.GONE
+            }
+            // 添加到根布局
+            (view as? ViewGroup)?.addView(statusText, 0)
+        }
+        
+        val finalStatusText = statusText
+        BleConnectionManager.transferProgress.observe(viewLifecycleOwner) { progress ->
+            Log.d("ImageEditFragment", "Progress update: $progress")
+            if (progress.isNotEmpty()) {
+                finalStatusText.text = progress
+                finalStatusText.visibility = View.VISIBLE
+            } else {
+                finalStatusText.visibility = View.GONE
+            }
+        }
+        
         // 原始图片按钮
         view.findViewById<ImageButton>(R.id.btnOriginal).setOnClickListener {
             currentMode = EditMode.ORIGINAL
             thresholdControlLayout.visibility = View.GONE
+            redThresholdControlLayout.visibility = View.GONE
             showOriginalImage()
             // 进入原图/重置裁剪确认状态
             cropConfirmed = false
@@ -163,14 +218,20 @@ class ImageEditFragment : Fragment() {
             }
             currentMode = EditMode.BINARIZE
             thresholdControlLayout.visibility = View.VISIBLE
+            redThresholdControlLayout.visibility = View.GONE
             applyBinarize()
         }
         
-        // 自适应二值化按钮
+        // 红色检测按钮 - 检测并保留红色区域，其他部分二值化
         view.findViewById<ImageButton>(R.id.btnAdaptiveBinarize).setOnClickListener {
-            currentMode = EditMode.ADAPTIVE_BINARIZE
-            thresholdControlLayout.visibility = View.GONE
-            applyAdaptiveBinarize()
+            if (!cropConfirmed) {
+                Toast.makeText(requireContext(), "请先确定裁剪后再检测", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            currentMode = EditMode.DETECT_RED
+            thresholdControlLayout.visibility = View.VISIBLE
+            redThresholdControlLayout.visibility = View.VISIBLE
+            applyDetectRed()
         }
 
         // 保存按钮
@@ -247,26 +308,80 @@ class ImageEditFragment : Fragment() {
         try {
             BleConnectionManager.sendDataWithFragments("SET_SLOT:$selectedSlot".toByteArray())
         } catch (_: Exception) {}
-        BleConnectionManager.sendDataWithFragments("RESET_PAGES".toByteArray())
+        
+        // 判断是否为红黑合成模式（当前图像有红、黑、白三种颜色）
+        val isRedBlackComposite = currentMode == EditMode.DETECT_RED
+        
+        if (isRedBlackComposite) {
+            // 红黑合成模式：分别发送红色层和黑色层
+            sendRedBlackCompositeImage()
+        } else {
+            // 普通模式：发送普通二值化图像
+            BleConnectionManager.sendDataWithFragments("RESET_PAGES".toByteArray())
+            val imageBytes = ImageProcessor.bitmapToMonochromeBytes(currentBitmap!!)
+            val PAGE_SIZE = 248
+            val totalToSend = imageBytes.size
+            val pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
 
-        val imageBytes = ImageProcessor.bitmapToMonochromeBytes(currentBitmap!!)
+            for (p in 0 until pages) {
+                val offset = p * PAGE_SIZE
+                val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
+                val pagePayload = ByteArray(PAGE_SIZE)
+                for (j in pagePayload.indices) pagePayload[j] = 0xFF.toByte()
+                System.arraycopy(imageBytes, offset, pagePayload, 0, end - offset)
+                for (j in pagePayload.indices) pagePayload[j] = (pagePayload[j].toInt() xor 0xFF).toByte()
+                BleConnectionManager.sendDataWithFragments(pagePayload, enableCompression = true, setColorBit = isRedSelected, isRed = isRedSelected)
+            }
+
+            BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
+            Toast.makeText(requireContext(), "已请求发送整张图像，共 $pages 页，槽位 $selectedSlot，并触发 DISPLAY", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun sendRedBlackCompositeImage() {
+        // 红黑合成模式：先发送红色层，再发送黑色层
         val PAGE_SIZE = 248
-        val totalToSend = imageBytes.size
-        val pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
+        
+        // 第一步：发送红色层
+        BleConnectionManager.sendDataWithFragments("RESET_PAGES".toByteArray())
+        val redLayerBytes = ImageProcessor.extractRedLayer(currentBitmap!!)
+        var totalToSend = redLayerBytes.size
+        var pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
 
         for (p in 0 until pages) {
             val offset = p * PAGE_SIZE
             val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
             val pagePayload = ByteArray(PAGE_SIZE)
-            for (j in pagePayload.indices) pagePayload[j] = 0xFF.toByte()
-            System.arraycopy(imageBytes, offset, pagePayload, 0, end - offset)
+            for (j in pagePayload.indices) pagePayload[j] = 0x00.toByte()
+            System.arraycopy(redLayerBytes, offset, pagePayload, 0, end - offset)
+            // RED层需要按位取反：e-paper红色通道极性相反 (1=无红, 0=红)
             for (j in pagePayload.indices) pagePayload[j] = (pagePayload[j].toInt() xor 0xFF).toByte()
-            BleConnectionManager.sendDataWithFragments(pagePayload, enableCompression = true, setColorBit = isRedSelected, isRed = isRedSelected)
+            BleConnectionManager.sendDataWithFragments(pagePayload, enableCompression = true, setColorBit = true, isRed = true)
+        }
+        Toast.makeText(requireContext(), "已发送红色层，共 $pages 页", Toast.LENGTH_SHORT).show()
+
+        // 延迟一下，确保红色层已处理完
+        Thread.sleep(500)
+
+        // 第二步：发送黑色层（bit编码，需要在此手动取反）
+        BleConnectionManager.sendDataWithFragments("RESET_PAGES".toByteArray())
+        val blackLayerBytes = ImageProcessor.extractBlackLayer(currentBitmap!!)
+        totalToSend = blackLayerBytes.size
+        pages = (totalToSend + PAGE_SIZE - 1) / PAGE_SIZE
+
+        for (p in 0 until pages) {
+            val offset = p * PAGE_SIZE
+            val end = (offset + PAGE_SIZE).coerceAtMost(totalToSend)
+            val pagePayload = ByteArray(PAGE_SIZE)
+            for (j in pagePayload.indices) pagePayload[j] = 0x00.toByte()
+            System.arraycopy(blackLayerBytes, offset, pagePayload, 0, end - offset)
+            // BW层需要按位取反：bit=1(黑)->0xFF, bit=0(白)->0x00
+            for (j in pagePayload.indices) pagePayload[j] = (pagePayload[j].toInt() xor 0xFF).toByte()
+            BleConnectionManager.sendDataWithFragments(pagePayload, enableCompression = true, setColorBit = false, isRed = false)
         }
 
         BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
-
-        Toast.makeText(requireContext(), "已请求发送整张图像，共 $pages 页，槽位 $selectedSlot，并触发 DISPLAY", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "已发送黑色层，共 $pages 页，红黑合成图像已完成", Toast.LENGTH_SHORT).show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
@@ -384,7 +499,7 @@ class ImageEditFragment : Fragment() {
         }
     }
     
-    private fun applyAdaptiveBinarize() {
+    private fun applyDetectRed() {
         var sourceBmp: Bitmap? = null
         try {
             sourceBmp = imagePreview.getCroppedImage(TARGET_WIDTH, TARGET_HEIGHT)
@@ -394,7 +509,7 @@ class ImageEditFragment : Fragment() {
 
         sourceBmp?.let {
             val scaled = Bitmap.createScaledBitmap(it, TARGET_WIDTH, TARGET_HEIGHT, true)
-            currentBitmap = ImageProcessor.adaptiveBinarize(scaled)
+            currentBitmap = ImageProcessor.detectRedAndBinarize(scaled, currentThreshold, currentRedThreshold)
             if (staticPreview != null) {
                 staticPreview?.setImageBitmap(currentBitmap)
             } else {
