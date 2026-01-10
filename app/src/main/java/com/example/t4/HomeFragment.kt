@@ -8,6 +8,10 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import com.example.t4.ble.BleConnectionManager
+import android.widget.ImageButton
+import androidx.appcompat.app.AlertDialog
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,6 +77,36 @@ class HomeFragment : Fragment() {
         
         // 检查并请求权限
         checkPermissionsAndLoadImages()
+
+        // 槽位显示按钮：选择槽位并请求 MCU 显示该槽位的图像
+        val btnShowSlot = view.findViewById<ImageButton>(R.id.btnShowSlot)
+        btnShowSlot?.setOnClickListener {
+            showSlotDialog()
+        }
+    }
+
+    private fun showSlotDialog() {
+        val items = Array(8) { i -> "槽位 ${i + 1}" }
+        var choice = 0
+        AlertDialog.Builder(requireContext())
+            .setTitle("选择要显示的槽位")
+            .setSingleChoiceItems(items, choice) { _, which -> choice = which }
+            .setPositiveButton("显示") { _, _ ->
+                val slot = choice + 1
+                Toast.makeText(requireContext(), "请求显示 槽位 $slot", Toast.LENGTH_SHORT).show()
+                try {
+                    BleConnectionManager.sendDataWithFragments("SET_SLOT:$slot".toByteArray())
+                } catch (e: Exception) {
+                    Log.w("HomeFragment", "SET_SLOT 发送失败: ${e.message}")
+                }
+                try {
+                    BleConnectionManager.sendDataWithFragments("DISPLAY".toByteArray())
+                } catch (e: Exception) {
+                    Log.w("HomeFragment", "DISPLAY 发送失败: ${e.message}")
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
     
     private fun checkPermissionsAndLoadImages() {

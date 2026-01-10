@@ -56,4 +56,6 @@ dependencies {
     // 添加 Material Components 库（包含 SwipeRefreshLayout）
     implementation libs.material
     implementation libs.swiperefreshlayout
+    // 图片裁剪库：通过 JitPack 使用 CanHub 的实现（在公司能访问 GitHub 时可用）
+    implementation 'com.github.CanHub:Android-Image-Cropper:4.3.0'
 }

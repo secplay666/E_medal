@@ -18,12 +18,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintHeight_percent="0.7">
         
-        <ImageView
+        <com.canhub.cropper.CropImageView
             android:id="@+id/imagePreview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="fitCenter"
             android:contentDescription="@string/ImageView"
+            app:cropGuidelines="on"
+            app:cropFixAspectRatio="true"
+            app:cropAspectRatioX="4"
+            app:cropAspectRatioY="3"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -43,9 +46,24 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <!-- 旋转按钮：放在保存按钮左侧 -->
+
     <!-- 返回按钮已移除，使用系统导航栏的返回按钮 -->
 
     <!-- 控制面板 -->
+
+    <ImageButton
+        android:id="@+id/btnRotate"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="旋转图片"
+        android:src="@drawable/ic_rotate_right"
+        app:layout_constraintEnd_toStartOf="@id/btnSave"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:id="@+id/controlPanel"
         android:layout_width="match_parent"
@@ -56,6 +74,14 @@
         app:layout_constraintBottom_toTopOf="@id/toolPanel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 确认裁剪按钮：用户裁剪完成后点击，固定裁剪结果 -->
+        <Button
+            android:id="@+id/btnConfirmCrop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="确定裁剪"
+            android:layout_marginBottom="8dp"/>
 
         <!-- 二值化阈值控制 -->
         <LinearLayout
@@ -138,6 +164,7 @@
                 tools:ignore="SmallSp"/>
         </LinearLayout>
 
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -196,24 +223,50 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center">
-            
+
             <ImageButton
-                android:id="@+id/btnDownload"
+                android:id="@+id/btnColorToggle"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:padding="6dp"
                 android:background="#FFFFFF"
-                android:contentDescription="@string/btn_download_desc"
+                android:contentDescription="切换颜色: 黑/红"
                 android:src="@drawable/ic_download"/>
-                
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="下载"
+                android:text="颜色"
                 android:textSize="10sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
                 tools:ignore="SmallSp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/btnDownload"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="#FFFFFF"
+                android:contentDescription="@string/btn_download_desc"
+                android:padding="6dp"
+                android:src="@drawable/ic_download" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="下载"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                tools:ignore="SmallSp" />
         </LinearLayout>
 
     </LinearLayout>

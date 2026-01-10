@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.t4.databinding.FragmentBleDeviceBinding
+import com.example.t4.ble.BleConnectionManager
 import java.util.*
 
 class BleDeviceFragment : Fragment() {
@@ -131,6 +132,8 @@ class BleDeviceFragment : Fragment() {
         // 连接设备
         try {
             bluetoothGatt = device.connectGatt(requireContext(), false, gattCallback)
+            // 将 GATT 注册到全局管理器以保持连接
+            BleConnectionManager.setGatt(bluetoothGatt)
             binding.connectionState.text = "正在连接..."
             binding.connectButton.text = "断开连接"
             Log.d(TAG, "正在连接到设备: $deviceAddress")
@@ -141,33 +144,21 @@ class BleDeviceFragment : Fragment() {
     }
 
     private fun disconnectDevice() {
-        bluetoothGatt?.let {
-            try {
-                it.disconnect()
-                it.close()
-                bluetoothGatt = null
-                connected = false
-                binding.connectionState.text = "已断开连接"
-                binding.connectButton.text = "连接设备"
-                
-                // 清空服务列表
-                clearGattServices()
-                
-                // 添加刷新设备缓存的代码
-                try {
-                    val refreshMethod = it.javaClass.getMethod("refresh")
-                    refreshMethod.invoke(it)
-                    Log.d(TAG, "刷新设备缓存")
-                } catch (e: Exception) {
-                    Log.e(TAG, "刷新设备缓存失败: ${e.message}")
-                }
-                
-                Log.d(TAG, "已断开设备连接")
-            } catch (e: SecurityException) {
-                Log.e(TAG, "断开设备连接失败: ${e.message}")
-                Toast.makeText(requireContext(), "缺少蓝牙连接权限", Toast.LENGTH_SHORT).show()
-            }
+        // 使用全局管理器断开并清理
+        try {
+            BleConnectionManager.disconnect()
+        } catch (e: Exception) {
+            Log.e(TAG, "disconnectDevice manager error: ${e.message}")
         }
+
+        bluetoothGatt = null
+        connected = false
+        binding.connectionState.text = "已断开连接"
+        binding.connectButton.text = "连接设备"
+
+        // 清空服务列表
+        clearGattServices()
+        Log.d(TAG, "已断开设备连接 (通过管理器)")
     }
 
     private val gattCallback = object : BluetoothGattCallback() {
@@ -273,6 +264,15 @@ class BleDeviceFragment : Fragment() {
                 characteristicItem[LIST_UUID] = characteristicUuid.toString()
                 characteristicItem[LIST_PROPERTIES] = properties
                 characteristicItems.add(characteristicItem)
+                // 如果发现 MCU 常见的写特征（前缀 FFF2），注册到全局管理器
+                try {
+                    val charUuidStr = characteristicUuid.toString().uppercase()
+                    if (charUuidStr.startsWith("0000FFF2")) {
+                        BleConnectionManager.registerTargetWriteCharacteristic(characteristic)
+                    }
+                } catch (e: Exception) {
+                    // ignore
+                }
             }
             
             gattCharacteristicData.add(characteristicItems)
@@ -365,20 +365,7 @@ class BleDeviceFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // 断开连接并释放资源
-        bluetoothGatt?.let {
-            try {
-                // 检查是否有蓝牙连接权限
-                if (hasBluetoothPermissions()) {
-                    it.disconnect()
-                    it.close()
-                } else {
-
-                }
-            } catch (e: SecurityException) {
-                Log.e(TAG, "断开连接失败: ${e.message}")
-            }
-        }
+        // 不在 fragment 销毁时强制断开连接，连接由 BleConnectionManager 管理，避免在切换主页时断开
         _binding = null
     }
 

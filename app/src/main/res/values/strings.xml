@@ -11,7 +11,6 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="delete_button_desc">删除图片</string>
-    <string name="btn_crop_desc">裁剪图片</string>
     <string name="btn_filter_desc">图片滤镜</string>
     <string name="btn_text_desc">添加文本</string>
     <string name="btn_download_desc">下载到下位机</string>

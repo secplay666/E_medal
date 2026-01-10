@@ -1,4 +1,6 @@
-package com.example.t4
+package com.example.t4.ble
+
+import com.example.t4.R
 
 import android.Manifest
 import android.bluetooth.*
