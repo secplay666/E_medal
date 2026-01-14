@@ -270,9 +270,13 @@ class ImageEditFragment : Fragment() {
             if (isNowRed == true) {
                 colorToggleBtn?.setColorFilter(Color.RED)
                 colorToggleBtn?.tag = "red"
+                // 将当前二值化图像的黑色部分染成红色以预览
+                colorizeImageToRed()
             } else {
                 colorToggleBtn?.clearColorFilter()
                 colorToggleBtn?.tag = "black"
+                // 恢复为原始的二值化图像（黑白）
+                restoreOriginalBinary()
             }
         }
 
@@ -569,6 +573,70 @@ class ImageEditFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    /**
+     * 将二值化图像中的黑色部分染成深红色，白色保持不变
+     * 用于预览红色显示效果
+     */
+    private fun colorizeImageToRed() {
+        if (currentBitmap == null) return
+        
+        try {
+            val width = currentBitmap!!.width
+            val height = currentBitmap!!.height
+            val colorizedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            
+            val pixels = IntArray(width * height)
+            currentBitmap!!.getPixels(pixels, 0, width, 0, 0, width, height)
+            
+            // 将黑色（Color.BLACK）转换为深红色，白色保持不变
+            // 可以在这里调整红色深度：
+            // Color.rgb(255, 0, 0) - 最亮的红色
+            // Color.rgb(200, 0, 0) - 中等深度红色
+            // Color.rgb(150, 0, 0) - 较深的红色
+            // Color.rgb(100, 0, 0) - 最深的红色
+            val darkRed = Color.rgb(180, 0, 0)  // 深红色
+            
+            for (i in pixels.indices) {
+                pixels[i] = if (pixels[i] == Color.BLACK) {
+                    darkRed  // 转换为深红
+                } else {
+                    Color.WHITE  // 保持白色
+                }
+            }
+            
+            colorizedBitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+            
+            // 更新显示
+            if (staticPreview != null) {
+                staticPreview?.setImageBitmap(colorizedBitmap)
+            } else {
+                imagePreview.setImageBitmap(colorizedBitmap)
+            }
+        } catch (e: Exception) {
+            Log.e("ImageEditFragment", "Error colorizing image to red: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * 恢复显示原始的二值化图像（黑白版本）
+     */
+    private fun restoreOriginalBinary() {
+        if (currentBitmap == null) return
+        
+        try {
+            // 重新应用二值化以恢复黑白版本
+            if (currentMode == EditMode.BINARIZE) {
+                applyBinarize()
+            } else if (currentMode == EditMode.DETECT_RED) {
+                applyDetectRed()
+            }
+        } catch (e: Exception) {
+            Log.e("ImageEditFragment", "Error restoring original binary image: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

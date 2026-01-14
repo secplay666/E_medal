@@ -194,8 +194,12 @@ class ImageProcessor {
                 val isRed = r > rMin && g < gMax && b < bMax
                 
                 if (isRed) {
-                    // 保持纯红色
-                    resultPixels[i] = Color.rgb(255, 0, 0)
+                    // 显示为深红色（可在此调整红色深度）
+                    // Color.rgb(255, 0, 0) - 最亮的纯红色
+                    // Color.rgb(200, 0, 0) - 中等亮度
+                    // Color.rgb(180, 0, 0) - 深红色
+                    // Color.rgb(150, 0, 0) - 更深的红色
+                    resultPixels[i] = Color.rgb(180, 0, 0)
                 } else {
                     // 对非红色区域进行二值化
                     val grayValue = (r * 0.299 + g * 0.587 + b * 0.114).roundToInt()
