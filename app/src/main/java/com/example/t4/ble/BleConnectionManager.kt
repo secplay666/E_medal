@@ -163,24 +163,44 @@ object BleConnectionManager {
             payload
         }
 
-        val processedPayload = if (shouldCompress) compressPageRLE(payloadForCompression) else payloadForCompression
-
-        if (shouldCompress) {
-            val ratio = (processedPayload.size.toFloat() / payload.size * 100).toInt()
-            Log.d(TAG, "Page compressed: ${payload.size}B -> ${processedPayload.size}B ($ratio%)")
+        val compressedData = if (shouldCompress) compressPageRLE(payloadForCompression) else null
+        
+        // 检查压缩有效性：只有当压缩实际有效时才使用
+        val processedPayload: ByteArray
+        var actuallyCompressed = false
+        
+        if (compressedData != null) {
+            if (compressedData.size < payload.size) {
+                // 压缩有效，使用压缩后的数据
+                processedPayload = compressedData
+                actuallyCompressed = true
+                val ratio = (compressedData.size.toFloat() / payload.size * 100).toInt()
+                Log.d(TAG, "Page compressed: ${payload.size}B -> ${compressedData.size}B ($ratio%)")
+            } else {
+                // 压缩无效（扩大了），使用原始的反转数据（payloadForCompression）
+                processedPayload = payloadForCompression
+                actuallyCompressed = false
+                Log.d(TAG, "Compression ineffective: ${payload.size}B -> ${compressedData.size}B, using uncompressed")
+            }
+        } else {
+            // 非248字节数据（如"DISPLAY"命令）或未启用压缩
+            processedPayload = payloadForCompression
+            actuallyCompressed = false
         }
 
         // New frame format: [MAGIC(2)][FLAGS(1)][LEN(2)][PAYLOAD(len)][CRC(2)]
         val magic = byteArrayOf(0xAB.toByte(), 0xCD.toByte())
-        var flags: Int = if (shouldCompress) 0x01 else 0x00
+        var flags: Int = if (actuallyCompressed) 0x01 else 0x00
         if (setColorBit && isRed) flags = flags or 0x02
         val flagsByte: Byte = (flags and 0xFF).toByte()
 
-        // CRC 对处理后的 payload 计算（已在压缩前/未压缩时对原始数据做了取反）
-        val crc = crc16Ccitt(processedPayload)
+        // LEN必须准确反映实际要发送的payload大小
         val len = processedPayload.size
         val lenHi = ((len shr 8) and 0xFF).toByte()
         val lenLo = (len and 0xFF).toByte()
+
+        // CRC必须对实际发送的payload计算（processedPayload）
+        val crc = crc16Ccitt(processedPayload)
 
         // 帧结构：MAGIC(2) + FLAGS(1) + LEN(2) + PAYLOAD(len) + CRC(2)
         val frame = ByteArray(2 + 1 + 2 + len + 2)
@@ -232,7 +252,7 @@ object BleConnectionManager {
     }
 
     // 标记是否使用 NO_RESPONSE 模式（不等待 GATT 回调）
-    private var useNoResponse = true  // 设为 true 启用快速模式
+    private var useNoResponse = false  // 改为 false：等待每个write完成后再发送下一个，避免MCU队列溢出
 
     private fun sendNextFragment() {
         if (isWriting) return
