@@ -283,6 +283,12 @@ class ImageEditFragment : Fragment() {
         // 槽位选择改为点击下载时弹出对话框选择，以避免依赖布局中可能丢失的 Spinner id
 
         view.findViewById<ImageButton>(R.id.btnDownload).setOnClickListener {
+            // 检查蓝牙连接
+            if (!BleConnectionManager.isConnected()) {
+                Toast.makeText(requireContext(), "未连接蓝牙，请先连接设备", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
             if (currentBitmap == null) {
                 Toast.makeText(requireContext(), "当前无图片可发送", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

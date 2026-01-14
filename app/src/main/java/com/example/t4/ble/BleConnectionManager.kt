@@ -54,6 +54,13 @@ object BleConnectionManager {
         }
     }
 
+    /**
+     * 检查蓝牙是否已连接
+     */
+    fun isConnected(): Boolean {
+        return bluetoothGatt != null && targetWriteCharacteristic != null
+    }
+
     // 发送队列
     private val writeQueue: Queue<ByteArray> = LinkedList()
     @Volatile
