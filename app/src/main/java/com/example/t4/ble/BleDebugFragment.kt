@@ -52,8 +52,6 @@ class BleDebugFragment : Fragment() {
 
     // 用于UI更新的Handler
     private val handler = Handler(Looper.getMainLooper())
-    // 当前 MTU，默认 ATT MTU = 23（有效负载 20）
-    private var currentMtu: Int = 23
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -209,25 +207,7 @@ class BleDebugFragment : Fragment() {
                     }
                 }
 
-                // MTU 变化回调（API >= 21）
-                override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-                    super.onMtuChanged(gatt, mtu, status)
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        currentMtu = mtu
-                        val payload = (mtu - 3).coerceAtLeast(0)
-                        // 添加了可供筛选的日志前缀
-                        Log.d(TAG, "[MTU_DEBUG] MTU 已变更: $mtu, 有效负载: $payload bytes")
-                        appendToReceiveBox("MTU 已变更: $mtu, 有效负载: $payload bytes")
-                        // 通知全局 manager MTU 变化
-                        BleConnectionManager.setMtu(mtu)
-                    } else {
-                        // 添加了可供筛选的日志前缀
-                        Log.w(TAG, "[MTU_DEBUG] MTU 变更失败, status: $status")
-                        appendToReceiveBox("MTU 变更失败, status: $status")
-                    }
-                }
-
-                            // MTU 调试逻辑已移除 — 保持默认协商行为
+                // MTU 变化回调已移除 — MTU 无法修改，保持默认协商行为
 
                 @Deprecated("Deprecated in Java")
                 override fun onCharacteristicRead(

@@ -50,8 +50,6 @@ class BleDebugFragment : Fragment() {
 
     // 用于UI更新的Handler
     private val handler = Handler(Looper.getMainLooper())
-    // 当前 MTU，默认 ATT MTU = 23（有效负载 20）
-    private var currentMtu: Int = 23
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -110,17 +108,6 @@ class BleDebugFragment : Fragment() {
             Log.d(TAG, "发送输入指令: $input")
             appendToReceiveBox("尝试发送: $input")
             writeCharacteristicData(input)
-        }
-        
-        // MTU 测试按钮 - 先发送 20 字节测试
-        view.findViewById<Button>(R.id.btnTestMtu)?.setOnClickListener {
-            Log.d(TAG, "[MTU_TEST] Button clicked")
-            appendToReceiveBox("========== MTU 测试 ==========")
-            appendToReceiveBox("当前 MTU 设置: ${BleConnectionManager.getMtu()}")
-            appendToReceiveBox("发送 20 字节测试数据...")
-            appendToReceiveBox("请查看 MCU 串口输出")
-            appendToReceiveBox("================================")
-            BleConnectionManager.testMtuSend20()
         }
 
         // 如果是E104设备，自动连接
@@ -187,14 +174,6 @@ class BleDebugFragment : Fragment() {
                         Log.d(TAG, "已连接到 GATT 服务器")
                         appendToReceiveBox("已连接到设备")
 
-                        // 请求更大的 MTU 以提高传输速度
-                        try {
-                            Log.d(TAG, "[MTU_DEBUG] 请求 MTU 247...")
-                            gatt.requestMtu(247)
-                        } catch (e: SecurityException) {
-                            Log.e(TAG, "请求 MTU 失败: ${e.message}")
-                        }
-
                         // 开始发现服务
                         try {
                             Log.d(TAG, "开始发现服务")
@@ -226,25 +205,7 @@ class BleDebugFragment : Fragment() {
                     }
                 }
 
-                // MTU 变化回调（API >= 21）
-                override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-                    super.onMtuChanged(gatt, mtu, status)
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        currentMtu = mtu
-                        val payload = (mtu - 3).coerceAtLeast(0)
-                        // 添加了可供筛选的日志前缀
-                        Log.d(TAG, "[MTU_DEBUG] MTU 已变更: $mtu, 有效负载: $payload bytes")
-                        appendToReceiveBox("MTU 已变更: $mtu, 有效负载: $payload bytes")
-                        // 通知全局 manager MTU 变化
-                        BleConnectionManager.setMtu(mtu)
-                    } else {
-                        // 添加了可供筛选的日志前缀
-                        Log.w(TAG, "[MTU_DEBUG] MTU 变更失败, status: $status")
-                        appendToReceiveBox("MTU 变更失败, status: $status")
-                    }
-                }
-
-                            // MTU 调试逻辑已移除 — 保持默认协商行为
+                // MTU 变化回调已移除 — MTU 无法修改，保持默认协商行为
 
                 @Deprecated("Deprecated in Java")
                 override fun onCharacteristicRead(

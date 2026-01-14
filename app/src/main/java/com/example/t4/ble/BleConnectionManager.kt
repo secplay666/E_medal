@@ -54,83 +54,6 @@ object BleConnectionManager {
         }
     }
 
-    // MTU 管理，默认 ATT MTU = 23
-    @Volatile
-    private var currentMtu: Int = 23
-
-    fun setMtu(mtu: Int) {
-        currentMtu = mtu
-        Log.d(TAG, "setMtu: $mtu")
-    }
-    
-    fun getMtu(): Int = currentMtu
-
-    /**
-     * MTU 测试：逐步测试不同大小，找出最大可发送字节数
-     */
-    fun testMtuSendRaw(size: Int) {
-        val gatt = bluetoothGatt
-        val char = targetWriteCharacteristic
-        if (gatt == null || char == null) {
-            Log.e(TAG, "[MTU_TEST] No gatt or characteristic!")
-            return
-        }
-        
-        Log.d(TAG, "[MTU_TEST] ========================================")
-        Log.d(TAG, "[MTU_TEST] Current MTU setting: $currentMtu")
-        Log.d(TAG, "[MTU_TEST] Testing different sizes...")
-        Log.d(TAG, "[MTU_TEST] ========================================")
-        
-        // 测试不同大小: 20, 50, 100, 150, 200
-        val testSizes = listOf(20, 50, 100, 150, 200)
-        
-        for (testSize in testSizes) {
-            val testData = ByteArray(testSize) { i -> (i and 0xFF).toByte() }
-            
-            try {
-                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                char.value = testData
-                val result = gatt.writeCharacteristic(char)
-                Log.d(TAG, "[MTU_TEST] Size $testSize bytes: request=${if (result) "OK" else "FAIL"}")
-                
-                if (result) {
-                    // 等待一下让回调执行
-                    Thread.sleep(500)
-                } else {
-                    Log.e(TAG, "[MTU_TEST] Size $testSize FAILED to send!")
-                    break
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "[MTU_TEST] Size $testSize Exception: ${e.message}")
-                break
-            }
-        }
-    }
-    
-    /**
-     * 发送固定 20 字节测试数据（几乎所有 BLE 都支持）
-     */
-    fun testMtuSend20() {
-        val gatt = bluetoothGatt
-        val char = targetWriteCharacteristic
-        if (gatt == null || char == null) {
-            Log.e(TAG, "[MTU_TEST] No gatt or characteristic!")
-            return
-        }
-        
-        val testData = ByteArray(20) { i -> (i and 0xFF).toByte() }
-        Log.d(TAG, "[MTU_TEST] Sending 20 bytes: ${testData.joinToString(" ") { String.format("%02X", it) }}")
-        
-        try {
-            char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-            char.value = testData
-            val result = gatt.writeCharacteristic(char)
-            Log.d(TAG, "[MTU_TEST] writeCharacteristic returned: $result")
-        } catch (e: SecurityException) {
-            Log.e(TAG, "[MTU_TEST] SecurityException: ${e.message}")
-        }
-    }
-
     // 发送队列
     private val writeQueue: Queue<ByteArray> = LinkedList()
     @Volatile
@@ -223,7 +146,7 @@ object BleConnectionManager {
         } catch (e: Exception) { /* ignore */ }
 
         // 分片发送
-        val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) (currentMtu - 3) else 20).coerceAtLeast(1)
+        val chunkSize = 20  // 默认 BLE MTU 为 23，有效负载 20 字节
         var chunkOffset = 0
         synchronized(writeQueue) {
             // 如果不在传输中，重新开始计数
