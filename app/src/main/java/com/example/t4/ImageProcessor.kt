@@ -194,7 +194,7 @@ class ImageProcessor {
                 val isRed = r > rMin && g < gMax && b < bMax
                 
                 if (isRed) {
-                    // 显示为深红色（可在此调整红色深度）
+                    // 显示为深红色（安卓端显示用）
                     // Color.rgb(255, 0, 0) - 最亮的纯红色
                     // Color.rgb(200, 0, 0) - 中等亮度
                     // Color.rgb(180, 0, 0) - 深红色
@@ -248,6 +248,7 @@ class ImageProcessor {
         /**
          * 从红黑白图像中提取红色层
          * 红色像素 -> 1，其他像素 -> 0
+         * 支持识别 Color.RED 和 Color.rgb(180, 0, 0) 两种红色
          */
         fun extractRedLayer(bitmap: Bitmap): ByteArray {
             val width = bitmap.width
@@ -259,11 +260,13 @@ class ImageProcessor {
 
             val out = ByteArray(totalBytes)
             var bitIndex = 0
+            
+            val darkRed = Color.rgb(180, 0, 0)
 
             for (i in pixels.indices) {
                 val px = pixels[i]
-                // 红色像素为 1，其他为 0
-                val bit = if (px == android.graphics.Color.RED) 1 else 0
+                // 红色像素为 1，其他为 0（支持纯红和深红）
+                val bit = if (px == android.graphics.Color.RED || px == darkRed) 1 else 0
                 val byteIndex = bitIndex / 8
                 val shift = 7 - (bitIndex % 8)
                 out[byteIndex] = (out[byteIndex].toInt() or (bit shl shift)).toByte()
