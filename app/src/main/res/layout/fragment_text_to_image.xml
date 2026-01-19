@@ -43,6 +43,20 @@
 
     </FrameLayout>
 
+    <!-- 传输状态 / 进度（红色条样式） -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:background="#FF6B6B"
+        android:textColor="#FFFFFF"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:textSize="12sp"
+        android:gravity="center_vertical"
+        android:visibility="gone" />
+
     <Button
         android:id="@+id/sendBtn"
         android:layout_width="match_parent"

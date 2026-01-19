@@ -82,8 +82,24 @@ class TextToImageFragment : Fragment() {
 
         // 发送当前位图
         binding.sendBtn.setOnClickListener {
+            // 发送前检查蓝牙连接
+            if (!BleConnectionManager.isConnected()) {
+                Toast.makeText(requireContext(), "未连接蓝牙，请先连接设备", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val bmp = currentBitmap ?: return@setOnClickListener
             showSlotSelectionAndSend(bmp)
+        }
+
+        // 观察传输进度，更新顶部状态红条
+        val statusText = binding.statusText
+        BleConnectionManager.transferProgress.observe(viewLifecycleOwner) { progress ->
+            if (!progress.isNullOrEmpty()) {
+                statusText.text = progress
+                statusText.visibility = View.VISIBLE
+            } else {
+                statusText.visibility = View.GONE
+            }
         }
     }
 
@@ -104,6 +120,9 @@ class TextToImageFragment : Fragment() {
         val textPaint = Paint()
         textPaint.color = Color.BLACK
         textPaint.isAntiAlias = true
+        // 使用粗体以提升水墨屏可读性
+        textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        textPaint.isFakeBoldText = false
 
         val h = bmp.height
         val w = bmp.width
