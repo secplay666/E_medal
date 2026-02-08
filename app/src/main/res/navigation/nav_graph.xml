@@ -87,4 +87,10 @@
         app:destination="@id/homeFragment"
         app:enterAnim="@anim/slide_in_right"
         app:exitAnim="@anim/slide_out_left"/>
+    <!-- 新增文字图片页 -->
+    <fragment
+        android:id="@+id/textImageFragment"
+        android:name="com.example.t4.TextToImageFragment"
+        android:label="文字图片"
+        tools:layout="@layout/fragment_text_to_image" />
 </navigation>

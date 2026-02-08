@@ -15,7 +15,13 @@ class BleDeviceAdapter(private val onClick: (BleDevice) -> Unit) :
     fun updateList(newDevices: List<BleDevice>) {
         val oldSize = devices.size
         devices.clear()
-        devices.addAll(newDevices.distinctBy { it.address })
+        // 去重
+        val uniqueDevices = newDevices.distinctBy { it.address }
+        // 排序：E104设备优先（排在最前面），其他设备按照原顺序
+        val sortedDevices = uniqueDevices.sortedBy { device ->
+            if (device.name?.contains("E104") == true) 0 else 1
+        }
+        devices.addAll(sortedDevices)
         notifyItemRangeRemoved(0, oldSize)
         notifyItemRangeInserted(0, devices.size)
     }

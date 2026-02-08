@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-        <item
-            android:id="@+id/homeFragment"
-            android:icon="@drawable/baseline_home_24"
-            android:title="主页" />
-        <item
-            android:id="@+id/bleScanFragment"
-            android:icon="@drawable/baseline_bluetooth_24"
-            android:title="蓝牙" />
-        <!-- 图像编辑选项已移除，因为它只能通过从主页选择图片来访问 -->
-        <item
-            android:id="@+id/bleDebugFragment"
-            android:icon="@drawable/debug_control_24px"
-            android:title="调试" />
+    <item
+        android:id="@+id/homeFragment"
+        android:icon="@drawable/baseline_home_24"
+        android:title="主页" />
+    <item
+        android:id="@+id/bleScanFragment"
+        android:icon="@drawable/baseline_bluetooth_24"
+        android:title="蓝牙" />
+    <!-- 图像编辑选项已移除，因为它只能通过从主页选择图片来访问 -->
+    <item
+        android:id="@+id/bleDebugFragment"
+        android:icon="@drawable/debug_control_24px"
+        android:title="调试" />
+    <item
+        android:id="@+id/textImageFragment"
+        android:icon="@drawable/ic_text"
+        android:title="文字图片" />
 </menu>

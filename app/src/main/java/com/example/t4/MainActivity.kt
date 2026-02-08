@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             
             // 设置顶级目的地，这样在这些目的地之间导航时不会创建返回栈
             appBarConfiguration = AppBarConfiguration(
-                setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.bleDebugFragment)
+                setOf(R.id.homeFragment, R.id.bleScanFragment, R.id.bleDebugFragment, R.id.textImageFragment)
             )
             
             setSupportActionBar(binding.topAppBar)

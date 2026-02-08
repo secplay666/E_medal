@@ -12,9 +12,17 @@ import android.os.Handler
 import android.os.Looper
 import java.util.LinkedList
 import java.util.Queue
+import androidx.lifecycle.MutableLiveData
 
 object BleConnectionManager {
     private const val TAG = "BleConnectionManager"
+
+    // 进度回调
+    val transferProgress = MutableLiveData<String>()
+    
+    private var totalFramesToSend = 0
+    private var framesSent = 0
+    private var isTransferring = false
 
     @Volatile
     var bluetoothGatt: BluetoothGatt? = null
@@ -46,13 +54,11 @@ object BleConnectionManager {
         }
     }
 
-    // MTU 管理，默认 ATT MTU = 23
-    @Volatile
-    private var currentMtu: Int = 23
-
-    fun setMtu(mtu: Int) {
-        currentMtu = mtu
-        Log.d(TAG, "setMtu: $mtu")
+    /**
+     * 检查蓝牙是否已连接
+     */
+    fun isConnected(): Boolean {
+        return bluetoothGatt != null && targetWriteCharacteristic != null
     }
 
     // 发送队列
@@ -87,24 +93,44 @@ object BleConnectionManager {
             payload
         }
 
-        val processedPayload = if (shouldCompress) compressPageRLE(payloadForCompression) else payloadForCompression
-
-        if (shouldCompress) {
-            val ratio = (processedPayload.size.toFloat() / payload.size * 100).toInt()
-            Log.d(TAG, "Page compressed: ${payload.size}B -> ${processedPayload.size}B ($ratio%)")
+        val compressedData = if (shouldCompress) compressPageRLE(payloadForCompression) else null
+        
+        // 检查压缩有效性：只有当压缩实际有效时才使用
+        val processedPayload: ByteArray
+        var actuallyCompressed = false
+        
+        if (compressedData != null) {
+            if (compressedData.size < payload.size) {
+                // 压缩有效，使用压缩后的数据
+                processedPayload = compressedData
+                actuallyCompressed = true
+                val ratio = (compressedData.size.toFloat() / payload.size * 100).toInt()
+                Log.d(TAG, "Page compressed: ${payload.size}B -> ${compressedData.size}B ($ratio%)")
+            } else {
+                // 压缩无效（扩大了），使用原始的反转数据（payloadForCompression）
+                processedPayload = payloadForCompression
+                actuallyCompressed = false
+                Log.d(TAG, "Compression ineffective: ${payload.size}B -> ${compressedData.size}B, using uncompressed")
+            }
+        } else {
+            // 非248字节数据（如"DISPLAY"命令）或未启用压缩
+            processedPayload = payloadForCompression
+            actuallyCompressed = false
         }
 
         // New frame format: [MAGIC(2)][FLAGS(1)][LEN(2)][PAYLOAD(len)][CRC(2)]
         val magic = byteArrayOf(0xAB.toByte(), 0xCD.toByte())
-        var flags: Int = if (shouldCompress) 0x01 else 0x00
+        var flags: Int = if (actuallyCompressed) 0x01 else 0x00
         if (setColorBit && isRed) flags = flags or 0x02
         val flagsByte: Byte = (flags and 0xFF).toByte()
 
-        // CRC 对处理后的 payload 计算（已在压缩前/未压缩时对原始数据做了取反）
-        val crc = crc16Ccitt(processedPayload)
+        // LEN必须准确反映实际要发送的payload大小
         val len = processedPayload.size
         val lenHi = ((len shr 8) and 0xFF).toByte()
         val lenLo = (len and 0xFF).toByte()
+
+        // CRC必须对实际发送的payload计算（processedPayload）
+        val crc = crc16Ccitt(processedPayload)
 
         // 帧结构：MAGIC(2) + FLAGS(1) + LEN(2) + PAYLOAD(len) + CRC(2)
         val frame = ByteArray(2 + 1 + 2 + len + 2)
@@ -127,20 +153,36 @@ object BleConnectionManager {
         } catch (e: Exception) { /* ignore */ }
 
         // 分片发送
-        val chunkSize = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) (currentMtu - 3) else 20).coerceAtLeast(1)
+        val chunkSize = 20  // 默认 BLE MTU 为 23，有效负载 20 字节
         var chunkOffset = 0
         synchronized(writeQueue) {
+            // 如果不在传输中，重新开始计数
+            if (!isTransferring) {
+                totalFramesToSend = 0
+                framesSent = 0
+                isTransferring = true
+                Log.d(TAG, "Starting new transfer")
+            }
+            
+            val startQueueSize = writeQueue.size
             while (chunkOffset < frame.size) {
                 val end = (chunkOffset + chunkSize).coerceAtMost(frame.size)
                 val chunk = frame.copyOfRange(chunkOffset, end)
                 writeQueue.add(chunk)
                 chunkOffset = end
             }
+            // 累加总数
+            val newChunks = (writeQueue.size - startQueueSize)
+            totalFramesToSend += newChunks
+            Log.d(TAG, "Added $newChunks chunks, total=$totalFramesToSend, sent=$framesSent")
         }
 
         // 触发发送
         mainHandler.post { sendNextFragment() }
     }
+
+    // 标记是否使用 NO_RESPONSE 模式（不等待 GATT 回调）
+    private var useNoResponse = false  // 改为 false：等待每个write完成后再发送下一个，避免MCU队列溢出
 
     private fun sendNextFragment() {
         if (isWriting) return
@@ -155,12 +197,43 @@ object BleConnectionManager {
         }
 
         try {
-            char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            if (useNoResponse) {
+                // NO_RESPONSE 模式：不等待 ACK，速度更快
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            } else {
+                char.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            }
             char.value = next
             val requested = gatt.writeCharacteristic(char)
             Log.d(TAG, "[MANAGER FRAGMENT] 写入片段 请求返回: $requested, 长度=${next.size}")
             if (requested) {
                 isWriting = true
+                
+                if (useNoResponse) {
+                    // NO_RESPONSE 模式：立即更新进度并发送下一包
+                    isWriting = false
+                    synchronized(writeQueue) {
+                        if (isTransferring && totalFramesToSend > 0) {
+                            framesSent++
+                            // 每 10 包更新一次 UI，减少 UI 开销
+                            if (framesSent % 10 == 0 || writeQueue.isEmpty()) {
+                                val progress = (framesSent * 100) / totalFramesToSend
+                                transferProgress.postValue("已发送: $framesSent / $totalFramesToSend (${progress}%)")
+                            }
+                            
+                            if (framesSent >= totalFramesToSend && writeQueue.isEmpty()) {
+                                totalFramesToSend = 0
+                                framesSent = 0
+                                isTransferring = false
+                                transferProgress.postValue("")
+                                Log.d(TAG, "Transfer complete!")
+                            }
+                        }
+                    }
+                    // 立即发送下一包，不等待
+                    mainHandler.post { sendNextFragment() }
+                }
+                // DEFAULT 模式会等待 onCharacteristicWrite 回调
             } else {
                 // 放回队列并稍后重试
                 synchronized(writeQueue) { writeQueue.add(next) }
@@ -171,10 +244,33 @@ object BleConnectionManager {
         }
     }
 
-    // 由 GATT 回调在 write 完成后调用
+    // 由 GATT 回调在 write 完成后调用（仅 DEFAULT 模式使用）
     fun onCharacteristicWrite(status: Int) {
+        if (useNoResponse) {
+            // NO_RESPONSE 模式下忽略 GATT 回调，避免重复计数
+            return
+        }
+        
         isWriting = false
         Log.d(TAG, "onCharacteristicWrite status=$status")
+        // 更新进度（非阻塞）
+        synchronized(writeQueue) {
+            if (isTransferring && totalFramesToSend > 0) {
+                framesSent++
+                val progress = (framesSent * 100) / totalFramesToSend
+                transferProgress.postValue("已发送: $framesSent / $totalFramesToSend (${progress}%)")
+                Log.d(TAG, "Progress: $framesSent / $totalFramesToSend")
+                
+                // 完成时重置
+                if (framesSent >= totalFramesToSend && writeQueue.isEmpty()) {
+                    totalFramesToSend = 0
+                    framesSent = 0
+                    isTransferring = false
+                    transferProgress.postValue("")
+                    Log.d(TAG, "Transfer complete!")
+                }
+            }
+        }
         // 继续发送下一片
         mainHandler.post { sendNextFragment() }
     }

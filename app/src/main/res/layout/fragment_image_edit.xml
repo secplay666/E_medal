@@ -120,7 +120,64 @@
                     android:textSize="14sp"/>
             </LinearLayout>
         </LinearLayout>
+
+        <!-- 红色阈值控制 -->
+        <LinearLayout
+            android:id="@+id/redThresholdControlLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="红色敏感度"
+                android:textSize="14sp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <SeekBar
+                    android:id="@+id/redThresholdSeekBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="100"
+                    android:progress="50"/>
+
+                <TextView
+                    android:id="@+id/redThresholdValueText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="50"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
+
+    <!-- 传输状态提示 -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:background="#FF6B6B"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/toolPanel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- 底部工具 -->
     <LinearLayout
@@ -210,7 +267,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="自适应"
+                android:text="红色检测"
                 android:textSize="10sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"

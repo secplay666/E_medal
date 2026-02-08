@@ -50,7 +50,7 @@ class BleScanFragment : Fragment() {
     // 添加多权限请求
     private lateinit var requestMultiplePermissionsLauncher: ActivityResultLauncher<Array<String>>
     // 替换旧的 LeScanCallback 为新的 ScanCallback
-    // BLE扫描回调
+    // BLE扫描回调 - 只显示和搜索以E104开头的设备
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val device = result.device
@@ -65,11 +65,26 @@ class BleScanFragment : Fragment() {
                     try {
                         val deviceName = device.name // 这里需要 BLUETOOTH_CONNECT 权限
                         Log.d("BLE_SCAN", "设备名称: $deviceName, 信号强度: $rssi")
-                        val bleDevice = BleDevice(deviceName, device.address, rssi, scanRecord)
-                        if (!currentDevices.contains(bleDevice)) {
-                            currentDevices.add(bleDevice)
-                            deviceAdapter.updateList(currentDevices)
-                            Log.d("BLE_SCAN", "添加设备到列表，当前列表大小: ${currentDevices.size}")
+                        
+                        // ===== 只显示以E104开头的设备 =====
+                        if (deviceName?.startsWith("E104") == true) {
+                            Log.d("BLE_SCAN", "找到E104设备: $deviceName")
+                            val bleDevice = BleDevice(deviceName, device.address, rssi, scanRecord)
+                            if (!currentDevices.contains(bleDevice)) {
+                                currentDevices.add(bleDevice)
+                                deviceAdapter.updateList(currentDevices)
+                                Log.d("BLE_SCAN", "添加E104设备到列表，当前列表大小: ${currentDevices.size}")
+                                
+                                // ===== 找到第一个E104设备后立即停止扫描 =====
+                                if (isScanning) {
+                                    Log.i("BLE_SCAN", "找到E104设备，立即停止扫描: $deviceName")
+                                    stopBleScan()
+                                    Toast.makeText(context, "已找到设备: $deviceName", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            // 非E104设备，记录但不显示
+                            Log.d("BLE_SCAN", "跳过非E104设备: $deviceName")
                         }
                     } catch (e: SecurityException) {
                         Log.e("BLE_SCAN", "权限错误: ${e.message}")
@@ -226,10 +241,7 @@ class BleScanFragment : Fragment() {
         binding.refreshLayout.isRefreshing = true
         binding.scanProgress.visibility = View.VISIBLE
 
-        // 扫描10秒后自动停止
-        handler.postDelayed({
-            stopBleScan()
-        }, 10000)
+        Log.i("BLE_SCAN", "开始搜索E104设备，找到后将自动停止")
 
         // 设置扫描设置，提高扫描效率
         val scanSettings = ScanSettings.Builder()
@@ -241,7 +253,7 @@ class BleScanFragment : Fragment() {
             try {
                 // 使用新的扫描方法，添加扫描设置
                 bluetoothLeScanner.startScan(null, scanSettings, scanCallback)
-                Log.d("BLE_SCAN", "扫描已启动，使用高功率模式")
+                Log.d("BLE_SCAN", "扫描已启动，使用高功率模式，只搜索E104设备")
             } catch (e: SecurityException) {
                 Log.e("BLE_SCAN", "启动扫描失败: ${e.message}")
                 Toast.makeText(context, "缺少蓝牙扫描权限", Toast.LENGTH_SHORT).show()

@@ -81,6 +81,10 @@ class HomeFragment : Fragment() {
         // 槽位显示按钮：选择槽位并请求 MCU 显示该槽位的图像
         val btnShowSlot = view.findViewById<ImageButton>(R.id.btnShowSlot)
         btnShowSlot?.setOnClickListener {
+            if (!BleConnectionManager.isConnected()) {
+                Toast.makeText(requireContext(), "未连接蓝牙，请先连接设备", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             showSlotDialog()
         }
     }
